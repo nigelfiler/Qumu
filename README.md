@@ -20,7 +20,7 @@ Bulk upload multiple videos to your Qumu instance.
 - Do **not** use Presentation Types that:
   - Require mandatory metadata
   - Use approval workflows
-    
+
   These workflows will cause the publishing process to fail, requiring manual user action in the Qumu portal to complete.
 
 ---
