@@ -39,11 +39,14 @@ Can be used as sample code for integrating video uploads into platforms such as 
 
 ## 🔹 `QC_analytics_with_CSV_Chart.html`
 **Purpose:** 
-Shows how the Reporting API may be used to provide custom reports
+Shows how the Reporting API may be used to provide custom reports. 
+The sample also shows how to identify presentations that have not been viewed over a certain time period.
 
 ---
 
 ## ⚠️ Disclaimer
+
+These are Proof of Concept samples show how you could utilise the Qumu API.
 
 This code is provided **as-is**, with **no warranties or guarantees** of any kind.  
 
