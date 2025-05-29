@@ -46,7 +46,7 @@ The sample also shows how to identify presentations that have not been viewed ov
 
 ## ⚠️ Disclaimer
 
-These are Proof of Concept samples show how you could utilise the Qumu API.
+These Proof of Concept samples show how you could utilise the Qumu API.
 
 This code is provided **as-is**, with **no warranties or guarantees** of any kind.  
 
