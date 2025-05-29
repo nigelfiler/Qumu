@@ -18,11 +18,11 @@ Bulk upload multiple videos to your Qumu instance.
 - Drag and drop video files onto the UI to start the process
 
 **Important Notes:**
-- Do **not** use Presentation Types that:
+- Do not use Presentation Types that:
   - Require mandatory metadata
   - Use approval workflows
 
-  These workflows will cause the publishing process to fail, requiring manual user action in the Qumu portal to complete.
+  These workflows will cause the publishing process to fail, requiring manual user action in the Qumu portal to complete the publishing process
 
 ---
 
