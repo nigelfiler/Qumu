@@ -2,11 +2,12 @@
 
 This repository contains sample code demonstrating how to interact with the **Qumu Cloud** platform using its APIs. 
 
-The examples provided can be used as standalone utilities or as reference code for integration into other platforms.
+The examples provided can be used as standalone utilities for test purposes or as reference code for integration into other platforms.
+
 
 ---
 
-## 🔹 `Qc_BulkUpload.html`
+## 🔹 `QC_BulkUpload.html`
 
 **Purpose:**  
 Bulk upload multiple videos to your Qumu instance.
@@ -32,6 +33,13 @@ Upload a **single video** to your Qumu instance.
 
 **Use Case:**  
 Can be used as sample code for integrating video uploads into platforms such as **WordPress** or other CMS solutions.
+
+---
+
+
+## 🔹 `QC_analytics_with_CSV_Chart.html`
+**Purpose:** 
+Shows how the Reporting API may be used to provide custom reports
 
 ---
 
