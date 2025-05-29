@@ -38,7 +38,7 @@ Can be used as sample code for integrating video uploads into platforms such as 
 ## ⚠️ Disclaimer
 
 This code is provided **as-is**, with **no warranties or guarantees** of any kind.  
-Use at your own risk.
+
 
 ---
 ## 🔐 Security Note
