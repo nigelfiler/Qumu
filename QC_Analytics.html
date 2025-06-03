@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qumu Analytics Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-3xl mx-auto p-6 bg-white shadow-md mt-10 rounded">
+    <h2 class="text-2xl font-bold mb-4">Qumu Analytics Report</h2>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block font-medium">Username</label>
+        <input type="text" id="username" required class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div>
+        <label class="block font-medium">Password</label>
+        <input type="password" id="password" required class="w-full border px-3 py-2 rounded" />
+      </div>
+      <div>
+        <label class="block font-medium">Qumu Domain</label>
+        <input type="text" id="domain" required placeholder="demo.qumucloud.com" class="w-full border px-3 py-2 rounded" />
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Login</button>
+    </form>
+
+<form id="reportForm" class="space-y-4 mt-6 hidden">
+  <div>
+    <label for="playlistGuid" class="block font-medium">Playlist GUID</label>
+    <input type="text" id="playlistGuid" required placeholder="e.g., abc123xyz" class="w-full border px-3 py-2 rounded" />
+    <div id="playlistGuidError" class="text-red-600 text-sm mt-1"></div>
+  </div>
+  <div>
+    <label for="startDate" class="block font-medium">Start Date</label>
+    <input type="date" id="startDate" required class="w-full border px-3 py-2 rounded" />
+  </div>
+  <div>
+    <label for="endDate" class="block font-medium">End Date</label>
+    <input type="date" id="endDate" required class="w-full border px-3 py-2 rounded" />
+  </div>
+  <div>
+    <label for="sortByViews" class="inline-flex items-center">
+      <input type="checkbox" id="sortByViews" class="mr-2" />
+      Sort by views (desc)
+    </label>
+  </div>
+  <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Get Report</button>
+</form>
+
+<div id="spinner" class="hidden mt-4 text-center">
+  <div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+</div>
+
+<div id="result" class="mt-6 max-h-[37.5rem] overflow-y-auto"></div>
+<div id="chartContainer" class="mt-4 hidden flex flex-col md:grid md:grid-cols-2 gap-4 justify-items-center"></div>
+<div id="buttonArea" class="mt-4 hidden flex space-x-4">
+      
+  <button id="backButton" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+    Back to Results
+  </button>
+</div>
+
+	<div id="videoModal" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
+	<div class="relative bg-white rounded-lg overflow-hidden shadow-lg w-full max-w-2xl p-4">
+     
+	 <button id="closeModal"
+  class="absolute top-2 right-2 flex items-center gap-2 bg-white text-black text-base font-semibold px-4 py-2 rounded shadow hover:bg-red-600 hover:text-white transition">
+  <span class="text-xl font-bold">&times;</span>
+  <span>Close</span>
+</button>
+	 
+	 
+    <iframe id="videoIframe" src="" frameborder="0" allowfullscreen class="w-full aspect-video rounded"></iframe>
+  </div>
+</div>
+
+
+
+  <script>
+    let storedUsername = '';
+    let storedPassword = '';
+    let storedDomain = '';
+    let storedPlaylistGuid = '';
+    let storedStartDate = '';
+    let storedEndDate = '';
+    let currentKuluData = [];
+    let chartInstances = {};
+	
+	
+
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    function toggleHidden(element, shouldHide) {
+      if (shouldHide && !element.classList.contains('hidden')) {
+        element.classList.add('hidden');
+      } else if (!shouldHide && element.classList.contains('hidden')) {
+        element.classList.remove('hidden');
+      }
+    }
+
+    function escapeHtml(unsafe) {
+	return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+	}
+
+    function destroyCharts() {
+      Object.values(chartInstances).forEach(chart => chart.destroy());
+      chartInstances = {};
+    }
+	
+	
+	function openModal(playerUrl) {
+      const modal = document.getElementById('videoModal');
+      const iframe = document.getElementById('videoIframe');
+      iframe.src = playerUrl;
+      modal.classList.remove('hidden');
+    }
+	
+
+    async function validateCredentials(username, password, domain) {
+      const url = `https://${domain}/api/2.2/rest/folders`;
+      const headers = new Headers({
+        'Authorization': 'Basic ' + btoa(`${username}:${password}`)
+      });
+      try {
+        const response = await fetch(url, { headers });
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Invalid username or password');
+          } else {
+            throw new Error(`Login failed: ${response.status} ${response.statusText}`);
+          }
+        }
+        return true;
+      } catch (error) {
+        if (error.name === 'TypeError') {
+          throw new Error('Network error: Failed to connect to the server.');
+        }
+        throw error;
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const domain = document.getElementById('domain').value.trim();
+
+      const spinner = document.getElementById('spinner');
+      const result = document.getElementById('result');
+      toggleHidden(spinner, false);
+      result.innerHTML = '';
+
+      try {
+        await validateCredentials(username, password, domain);
+        storedUsername = username;
+        storedPassword = password;
+        storedDomain = domain;
+        toggleHidden(document.getElementById('loginForm'), true);
+        toggleHidden(document.getElementById('reportForm'), false);
+        result.innerHTML = '';
+        const today = new Date();
+        const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+        document.getElementById('startDate').value = oneYearAgo.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+      } catch (error) {
+        result.innerHTML = `<p class="text-red-600">Error: ${escapeHtml(error.message)}</p>`;
+      } finally {
+        toggleHidden(spinner, true);
+      }
+    });
+
+    // Real-time validation for playlistGuid
+    document.getElementById('playlistGuid').addEventListener('input', (e) => {
+      e.target.value = e.target.value.trim();
+      const guidRegex = /^[a-zA-Z0-9]+$/;
+      const errorDiv = document.getElementById('playlistGuidError');
+      if (e.target.value && !guidRegex.test(e.target.value)) {
+        errorDiv.textContent = 'Please enter a valid Playlist GUID (letters and numbers only, e.g., abc123xyz)';
+      } else {
+        errorDiv.textContent = '';
+      }
+    });
+
+
+// ************************
+async function fetchKuluDetails(kuluGuid, startDate, endDate, kuluTitle, thumbnailUrl, kuluObj) {
+  function formatDateRFC1123(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00Z');
+    if (isNaN(date)) throw new Error(`Invalid date format: ${dateStr}`);
+    return encodeURIComponent(date.toUTCString().replace('GMT', '+0000'));
+  }
+
+  const limit = 100;
+  let offset = 0;
+  let allEvents = [];
+  const maxPages = 50;
+
+  const spinner = document.getElementById('spinner');
+  const result = document.getElementById('result');
+  const chartContainer = document.getElementById('chartContainer');
+  const buttonArea = document.getElementById('buttonArea');
+
+  toggleHidden(spinner, false);
+  result.innerHTML = '';
+  toggleHidden(chartContainer, true);
+  toggleHidden(buttonArea, true);
+
+  try {
+    while (offset < maxPages * limit) {
+      const url = `https://${storedDomain}/api/2.2/rest/kulus/${kuluGuid}/reporting/events?startDate=${formatDateRFC1123(startDate)}&endDate=${formatDateRFC1123(endDate)}&limit=${limit}&offset=${offset}`;
+      const headers = new Headers({
+        'Authorization': 'Basic ' + btoa(`${storedUsername}:${storedPassword}`)
+      });
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+
+      const data = await response.json();
+      const events = Array.isArray(data.events) ? data.events : [];
+      allEvents = allEvents.concat(events);
+      if (events.length < limit) break;
+      offset += limit;
+    }
+
+    if (allEvents.length === 0) {
+      result.innerHTML = '<p class="text-red-600">No viewing data found for this Presentation.</p>';
+      toggleHidden(buttonArea, false);
+	  toggleHidden(backButton, false);
+ 
+      return;
+    }
+
+    // === DATA PROCESSING ===
+    const totalPercentage = allEvents.reduce((sum, event) => sum + (event.percentageViewed || 0), 0);
+    const averagePercentage = allEvents.length > 0 ? (totalPercentage / allEvents.length).toFixed(2) : 0;
+    const totalDurationMs = allEvents.reduce((sum, e) => sum + (e.durationViewed || 0), 0);
+    const totalDurationFormatted = formatDuration(totalDurationMs);
+
+    const bins = { '0-25': 0, '25-50': 0, '50-75': 0, '75-100': 0 };
+    const userTypes = { 'Guest': 0, 'Known User': 0 };
+    const hourlyEvents = Array(24).fill(0);
+    const deviceTypes = {};
+    const userViewCounts = {};
+    const engagementByDate = {};
+
+    allEvents.forEach(event => {
+      const percentage = event.percentageViewed || 0;
+      if (percentage <= 25) bins['0-25']++;
+      else if (percentage <= 50) bins['25-50']++;
+      else if (percentage <= 75) bins['50-75']++;
+      else bins['75-100']++;
+
+      const userName = event.user?.name?.trim() || 'Anonymous';
+      if (!userName || userName === 'Anonymous' || userName.toLowerCase() === 'guest') {
+        userTypes['Guest']++;
+      } else {
+        userTypes['Known User']++;
+      }
+
+      userViewCounts[userName] = (userViewCounts[userName] || 0) + 1;
+
+      if (event.time) {
+        const hour = new Date(event.time).getUTCHours();
+        hourlyEvents[hour]++;
+        const dateStr = new Date(event.time).toISOString().split('T')[0];
+        engagementByDate[dateStr] = (engagementByDate[dateStr] || 0) + 1;
+      }
+
+      const device = event.device?.device || 'Unknown';
+      deviceTypes[device] = (deviceTypes[device] || 0) + 1;
+    });
+
+    const deviceLabels = Object.keys(deviceTypes);
+    const deviceData = Object.values(deviceTypes);
+
+    // === CHART CONTAINERS ===
+    chartContainer.innerHTML = `
+      <div class="w-full"><canvas id="percentageChart" class="w-full" style="max-height: 300px;"></canvas></div>
+      <div class="w-full"><canvas id="userTypeChart" class="w-full" style="max-height: 300px;"></canvas></div>
+      <div class="w-full"><canvas id="hourlyEngagementChart" class="w-full" style="max-height: 300px;"></canvas></div>
+      <div class="w-full"><canvas id="deviceTypeChart" class="w-full" style="max-height: 300px;"></canvas></div>
+      <div class="w-full"><canvas id="userViewsChart" class="w-full" style="max-height: 300px;"></canvas></div>
+      <div class="w-full"><canvas id="engagementOverTimeChart" class="w-full" style="max-height: 300px;"></canvas></div>
+    `;
+    toggleHidden(chartContainer, false);
+
+    // === CHART RENDERING (ALL SIX CHARTS) ===
+   
+    // === CHART 1: Percentage Viewed ===
+    chartInstances.percentageChart = new Chart(document.getElementById('percentageChart'), {
+      type: 'bar',
+      data: {
+        labels: ['0-25%', '25-50%', '50-75%', '75-100%'],
+        datasets: [{
+          label: 'Number of Views',
+          data: [bins['0-25'], bins['25-50'], bins['50-75'], bins['75-100']],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Percentage Viewed Distribution' }, legend: { display: false } },
+        scales: { y: { beginAtZero: true }, x: { title: { display: true, text: 'Percent Watched' } } },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // === CHART 2: User Type ===
+    chartInstances.userTypeChart = new Chart(document.getElementById('userTypeChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Guest', 'Authenticated'],
+        datasets: [{
+          data: [userTypes['Guest'], userTypes['Known User']],
+          backgroundColor: ['#FF6384', '#36A2EB']
+        }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Guest vs Authenticated Views' } },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // === CHART 3: Hourly Engagement ===
+    chartInstances.hourlyEngagementChart = new Chart(document.getElementById('hourlyEngagementChart'), {
+      type: 'bar',
+      data: {
+        labels: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')),
+        datasets: [{ label: 'Views per Hour', data: hourlyEvents, backgroundColor: '#FFCE56' }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'User Engagement by Hour' }, legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          x: { title: { display: true, text: 'Hour (UTC)' } }
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // === CHART 4: Device Type ===
+    chartInstances.deviceTypeChart = new Chart(document.getElementById('deviceTypeChart'), {
+      type: 'pie',
+      data: {
+        labels: deviceLabels,
+        datasets: [{
+          data: deviceData,
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Device Type Distribution' } },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // === CHART 5: Top Users ===
+    const sortedUserEntries = Object.entries(userViewCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+    const topUsers = sortedUserEntries.map(([user]) => user);
+    const topUserViews = sortedUserEntries.map(([, count]) => count);
+
+    chartInstances.userViewsChart = new Chart(document.getElementById('userViewsChart'), {
+      type: 'bar',
+      data: {
+        labels: topUsers,
+        datasets: [{
+          label: 'Number of Views',
+          data: topUserViews,
+          backgroundColor: '#8e44ad'
+        }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Top 10 Users by View Count' }, legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Views' } },
+          x: { title: { display: true, text: 'User' } }
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // === CHART 6: Engagement Over Time ===
+    const sortedDates = Object.keys(engagementByDate).sort();
+    const engagementCounts = sortedDates.map(date => engagementByDate[date]);
+
+    chartInstances.engagementOverTimeChart = new Chart(document.getElementById('engagementOverTimeChart'), {
+      type: 'line',
+      data: {
+        labels: sortedDates,
+        datasets: [{
+          label: 'Views',
+          data: engagementCounts,
+          fill: false,
+          borderColor: '#2ecc71',
+          tension: 0.2,
+          pointRadius: 3
+        }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Engagement Over Time (UTC)' }, legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: 'Date' } },
+          y: { beginAtZero: true, title: { display: true, text: 'Views' }, ticks: { precision: 0 } }
+        },
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+   
+   
+
+    // === SUMMARY + DETAILS TABLE ===
+
+
+let html = `
+  <div class="mb-4">
+    <h3 class="text-xl font-semibold mb-2">${escapeHtml(kuluTitle)}</h3>
+    ${kuluObj?.player ? `
+      <img src="${escapeHtml(thumbnailUrl)}" alt="Thumbnail" 
+           class="w-[125px] rounded shadow cursor-pointer" 
+           onclick="openModal('${escapeHtml(kuluObj.player)}')" />`
+    : ''}
+  </div>
+`;
+	
+	
+	
+	
+
+
+// Add the summary stats as cards
+html += `
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+    <div class="bg-blue-100 text-center rounded shadow p-4">
+      <div class="text-sm text-gray-600">Average % Viewed</div>
+      <div class="text-2xl font-bold text-blue-700">${averagePercentage}%</div>
+    </div>
+    <div class="bg-green-100 text-center rounded shadow p-4">
+      <div class="text-sm text-gray-600">Total Views</div>
+      <div class="text-2xl font-bold text-green-700">${allEvents.length}</div>
+    </div>
+    <div class="bg-yellow-100 text-center rounded shadow p-4">
+      <div class="text-sm text-gray-600">Total Viewing Time</div>
+      <div class="text-xl font-bold text-yellow-700">${totalDurationFormatted}</div>
+    </div>
+  </div>
+  
+
+ 
+    
+`;
+
+// Start the table block
+html += `
+	<div class="max-h-[40vh] overflow-y-auto relative">
+	<table class="min-w-full table-fixed border-separate border-spacing-0">
+    <thead class="sticky top-0 bg-gray-100 z-10">
+      <tr>
+        <th class="px-4 py-2 border">Device</th>
+     	<th class="px-4 py-2 border cursor-pointer select-none" id="sortTimestamp"> Timestamp <span id="sortArrow" class="inline-block ml-1">▲</span> </th>					
+        <th class="px-4 py-2 border">User</th>    
+		<th class="px-4 py-2 w-20 border cursor-pointer select-none" id="sortPercentage">Percentage Viewed <span id="sortArrow" class="inline-block ml-1">▲</span></th>
+        <th class="px-4 py-2 border">Duration Viewed</th>
+      </tr>
+    </thead>
+	<tbody>
+`;
+
+
+
+
+    allEvents.forEach(event => {
+      html += `<tr>
+        <td class="px-4 py-2 border">${escapeHtml(event.device?.device || 'Unknown')}</td>
+        <td class="px-4 py-2 border">${event.time ? new Date(event.time).toLocaleString() : 'N/A'}</td>
+        <td class="px-4 py-2 border">${escapeHtml(event.user?.name || 'Anonymous')}</td>
+        <td class="px-4 py-2 w-20 border">${event.percentageViewed || 0}%</td>
+        <td class="px-4 py-2 w-20 border">${event.durationViewed ? Math.round(event.durationViewed / 1000) : 0} sec</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    result.innerHTML = html;
+	
+	let sortAscending = true;
+
+	document.getElementById('sortPercentage')?.addEventListener('click', () => {
+	  const rows = Array.from(document.querySelectorAll('#result tbody tr'));
+
+	  rows.sort((a, b) => {
+		const aVal = parseFloat(a.cells[3].textContent) || 0;
+		const bVal = parseFloat(b.cells[3].textContent) || 0;
+		return sortAscending ? aVal - bVal : bVal - aVal;
+	  });
+
+	  const tbody = document.querySelector('#result tbody');
+	  rows.forEach(row => tbody.appendChild(row)); // reappend in new order
+
+	  // Toggle arrow and direction
+	  const arrow = document.getElementById('sortArrow');
+	  sortAscending = !sortAscending;
+	  arrow.textContent = sortAscending ? '▲' : '▼';
+	});
+
+
+	let timestampSortAscending = true;
+
+	document.getElementById('sortTimestamp')?.addEventListener('click', () => {
+	  const rows = Array.from(document.querySelectorAll('#result tbody tr'));
+
+	  rows.sort((a, b) => {
+		const aTime = new Date(a.cells[1].textContent).getTime();
+		const bTime = new Date(b.cells[1].textContent).getTime();
+		return timestampSortAscending ? aTime - bTime : bTime - aTime;
+	  });
+
+	  const tbody = document.querySelector('#result tbody');
+	  rows.forEach(row => tbody.appendChild(row)); // reappend rows in new order
+
+	  // Update arrow direction
+	  const arrow = document.getElementById('timestampArrow');
+	  timestampSortAscending = !timestampSortAscending;
+	  arrow.textContent = timestampSortAscending ? '▲' : '▼';
+	});
+
+    toggleHidden(buttonArea, false);
+ 
+    document.getElementById('backButton').classList.remove('hidden');
+	toggleHidden(document.getElementById('reportForm'), true);
+	
+  } catch (error) {
+    result.innerHTML = `<p class="text-red-600">Error: ${escapeHtml(error.message)}</p>`;
+    toggleHidden(buttonArea, true);
+  
+  } finally {
+    toggleHidden(spinner, true);
+  }
+}
+
+
+	
+
+
+    function attachResultClickListener() {
+      document.getElementById('result').addEventListener('click', async (e) => {
+        const kuluGuid = e.target.getAttribute('data-kulu-guid');
+        const title = e.target.textContent || 'Unknown Title';
+        if (kuluGuid && (e.target.classList.contains('kulu-link') || e.target.classList.contains('kulu-details'))) {
+          const kuluRow = e.target.closest('tr');
+          if (!kuluRow) {
+            console.error('No parent row found for clicked element:', e.target);
+            return;
+          }
+          const kuluTitle = kuluRow.querySelector('.kulu-link')?.textContent?.trim() || 'Unknown Title';
+          const kuluObj = currentKuluData.find(k => k.guid === kuluGuid);
+          const thumbnailUrl = kuluObj?.thumbnail?.url || '';
+          await fetchKuluDetails(kuluGuid, storedStartDate, storedEndDate, kuluTitle, thumbnailUrl, kuluObj);
+        } else if (kuluGuid === null && (e.target.classList.contains('kulu-link') || e.target.classList.contains('kulu-details'))) {
+          document.getElementById('result').innerHTML = `<p class="text-red-600">Error: Kulu ID not found for "${escapeHtml(title)}". Check console for more details.</p>`;
+          console.error(`Missing Kulu ID for title: ${title}`);
+        }
+      });
+    }
+
+    attachResultClickListener();
+
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Reset previous results and charts
+      destroyCharts();
+      currentKuluData = [];
+      const result = document.getElementById('result');
+      const chartContainer = document.getElementById('chartContainer');
+      const buttonArea = document.getElementById('buttonArea');
+      const backButton = document.getElementById('backButton');
+      const spinner = document.getElementById('spinner');
+
+      result.innerHTML = '';
+      chartContainer.innerHTML = '';
+      toggleHidden(chartContainer, true);
+      toggleHidden(buttonArea, true);
+      toggleHidden(backButton, true);
+      toggleHidden(spinner, false);
+
+      storedPlaylistGuid = document.getElementById('playlistGuid').value.trim();
+      storedStartDate = document.getElementById('startDate').value;
+      storedEndDate = document.getElementById('endDate').value;
+      const sortByViews = document.getElementById('sortByViews').checked;
+
+      if (!storedPlaylistGuid || !storedStartDate || !storedEndDate) {
+        result.innerHTML = '<p class="text-red-600">Error: All fields are required.</p>';
+        toggleHidden(spinner, true);
+        return;
+      }
+
+      if (new Date(storedEndDate) < new Date(storedStartDate)) {
+        result.innerHTML = '<p class="text-red-600">Error: End date must be after start date.</p>';
+        toggleHidden(spinner, true);
+        return;
+      }
+
+      const guidRegex = /^[a-zA-Z0-9]+$/;
+      if (!guidRegex.test(storedPlaylistGuid)) {
+        console.log('Entered Playlist GUID:', storedPlaylistGuid); // Debug log
+        result.innerHTML = '<p class="text-red-600">Error: Invalid Playlist GUID format. Please enter letters and numbers only (e.g., abc123xyz).</p>';
+        toggleHidden(spinner, true);
+        return;
+      }
+
+      function formatDateRFC1123(dateStr) {
+        const date = new Date(dateStr + 'T00:00:00Z');
+        if (isNaN(date)) {
+          throw new Error('Invalid date format');
+        }
+        return encodeURIComponent(date.toUTCString().replace('GMT', '+0000'));
+      }
+
+      const url = `https://${storedDomain}/api/2.2/rest/playlists/${storedPlaylistGuid}/kulus/reporting/views?startDate=${formatDateRFC1123(storedStartDate)}&endDate=${formatDateRFC1123(storedEndDate)}&limit=3000&offset=0`;
+
+      const headers = new Headers();
+      headers.append('Authorization', 'Basic ' + btoa(`${storedUsername}:${storedPassword}`));
+
+      try {
+        let response;
+        try {
+          response = await fetch(url, { headers });
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+        } catch (error) {
+          if (error.name === 'TypeError') {
+            throw new Error('Network error: Failed to connect to the server.');
+          }
+          throw error;
+        }
+
+        const data = await response.json();
+        let kulus = data.kulus;
+
+        if (!Array.isArray(kulus) || kulus.length === 0) {
+          result.innerHTML = '<p class="text-red-600">No data found for this playlist and date range.</p>';
+          toggleHidden(buttonArea, true);
+          toggleHidden(spinner, true);
+          return;
+        }
+
+        if (sortByViews) {
+          kulus.sort((a, b) => (b?.reporting?.views || 0) - (a?.reporting?.views || 0));
+        }
+
+        currentKuluData = kulus;
+
+        let html = '<div class="overflow-x-auto"><table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report"><thead><tr class="bg-blue-100"><th scope="col" class="px-4 py-2 border">Title</th><th scope="col" class="px-4 py-2 border">Views</th><th scope="col" class="px-4 py-2 border">Viewing Report</th></tr></thead><tbody>';
+        kulus.forEach(kulu => {
+          const kuluGuid = kulu.guid;
+          const hasKuluGuid = !!kuluGuid;
+          if (!kuluGuid) {
+            console.warn(`Kulu object missing guid: ${JSON.stringify(kulu)}`);
+          }
+          html += `<tr>
+            <td class="px-4 py-2 border"><a class="text-blue-600 underline kulu-link" href="${escapeHtml(kulu.player || '#')}" data-kulu-guid="${escapeHtml(kuluGuid || '')}" target="_blank">${escapeHtml(kulu.title || 'Untitled')}</a></td>
+            <td class="px-4 py-2 border">${kulu.reporting?.views ?? 0}</td>
+            <td class="px-4 py-2 border">${
+              hasKuluGuid
+                ? `<button class="kulu-details bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition" data-kulu-guid="${kuluGuid}" aria-label="View event details for ${escapeHtml(kulu.title || 'Untitled')}">View Report</button>`
+                : '<span class="text-gray-500" title="No Kulu events found.">N/A</span>'
+            }</td>
+          </tr>`;
+        });
+        html += '</tbody></table></div>';
+
+        result.innerHTML = html;
+        toggleHidden(buttonArea, false);
+      
+
+      } catch (error) {
+        result.innerHTML = `<p class="text-red-600">Error: ${escapeHtml(error.message)}</p>`;
+        toggleHidden(buttonArea, true);
+      
+      } finally {
+        toggleHidden(spinner, true);
+      }
+    });
+
+    document.getElementById('backButton').addEventListener('click', () => {
+      if (!currentKuluData.length) return;
+
+      destroyCharts();
+      const chartContainer = document.getElementById('chartContainer');
+    
+      chartContainer.innerHTML = '';
+      toggleHidden(chartContainer, true);
+      toggleHidden(document.getElementById('backButton'), true);
+   
+
+      let html = '<div class="overflow-x-auto"><table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report"><thead><tr class="bg-blue-100"><th scope="col" class="px-4 py-2 border">Title</th><th scope="col" class="px-4 py-2 border">Views</th><th scope="col" class="px-4 py-2 border">Detailed</th></tr></thead><tbody>';
+      currentKuluData.forEach(kulu => {
+        const kuluGuid = kulu.guid;
+        const hasKuluGuid = !!kuluGuid;
+        html += `<tr>
+          <td class="px-4 py-2 border"><a class="text-blue-600 underline kulu-link" href="${escapeHtml(kulu.player || '#')}" data-kulu-guid="${escapeHtml(kuluGuid || '')}" target="_blank">${escapeHtml(kulu.title || 'Untitled')}</a></td>
+          <td class="px-4 py-2 border">${kulu.reporting?.views ?? 0}</td>
+          <td class="px-4 py-2 border">${
+            hasKuluGuid
+              ? `<button class="kulu-details bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition" data-kulu-guid="${kuluGuid}" aria-label="View event details for ${escapeHtml(kulu.title || 'Untitled')}">View Report</button>`
+              : '<span class="text-gray-500" title="No Kulu events found.">N/A</span>'
+          }</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+
+      document.getElementById('result').innerHTML = html;
+	  toggleHidden(document.getElementById('reportForm'), false);
+
+      toggleHidden(document.getElementById('buttonArea'), false);
+    });
+
+
+
+
+	function openModal(playerUrl) {
+	const modal = document.getElementById('videoModal');
+	const iframe = document.getElementById('videoIframe');
+	iframe.src = playerUrl;
+	modal.classList.remove('hidden');
+	}
+
+
+
+	document.getElementById('closeModal').addEventListener('click', () => {
+	const modal = document.getElementById('videoModal');
+	const iframe = document.getElementById('videoIframe');
+	iframe.src = ''; // Stop video
+	modal.classList.add('hidden');
+	});
+
+	window.addEventListener('keydown', (e) => {
+	if (e.key === 'Escape') {
+    document.getElementById('closeModal').click();
+		}
+	});
+	
+	
+	
+	
+  </script>
+  
+</body>
+</html>
