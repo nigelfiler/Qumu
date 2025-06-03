@@ -55,5 +55,5 @@ This code is provided **as-is**, with **no warranties or guarantees** of any kin
 ## 🔐 Security Note
 
 These samples use **basic local authentication** for simplicity and demonstration purposes.  
-For production use or public deployments, it is recommended to implement **OAuth 2.0** for secure, standards-based authentication and authorization with the Qumu Cloud platform.
+For production use it is recommended to implement **OAuth 2.0** for secure, standards-based authentication and authorization with the Qumu Cloud platform.
 
