@@ -41,6 +41,7 @@ Can be used as sample code for integrating video uploads into platforms such as 
 **Purpose:** 
 Shows how the Reporting API may be used to provide custom reports. 
 The sample also shows how to identify presentations that have not been viewed over a certain time period.
+Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
 ---
 
