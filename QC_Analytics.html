@@ -44,12 +44,22 @@
     <label for="endDate" class="block font-medium">End Date</label>
     <input type="date" id="endDate" required class="w-full border px-3 py-2 rounded" />
   </div>
+  
   <div>
-    <label for="sortByViews" class="inline-flex items-center">
-      <input type="checkbox" id="sortByViews" class="mr-2" />
-      Sort by views (desc)
-    </label>
-  </div>
+  <label for="sortByViews" class="inline-flex items-center mr-4">
+    <input type="checkbox" id="sortByViews" class="mr-2" />
+    Sort by views (desc)
+  </label>
+
+  <label for="limitTo500" class="inline-flex items-center">
+    <input type="checkbox" id="limitTo500" class="mr-2" />
+    Limit results to 500
+  </label>
+</div>
+
+  
+  
+  
   <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Get Report</button>
 </form>
 
@@ -640,8 +650,13 @@ html += `
         return encodeURIComponent(date.toUTCString().replace('GMT', '+0000'));
       }
 
-      const url = `https://${storedDomain}/api/2.2/rest/playlists/${storedPlaylistGuid}/kulus/reporting/views?startDate=${formatDateRFC1123(storedStartDate)}&endDate=${formatDateRFC1123(storedEndDate)}&limit=3000&offset=0`;
+    const limitTo500 = document.getElementById('limitTo500').checked;
+	const resultLimit = limitTo500 ? 500 : 3000;
 
+	const url = `https://${storedDomain}/api/2.2/rest/playlists/${storedPlaylistGuid}/kulus/reporting/views?startDate=${formatDateRFC1123(storedStartDate)}&endDate=${formatDateRFC1123(storedEndDate)}&limit=${resultLimit}&offset=0`;
+
+	  
+	  
       const headers = new Headers();
       headers.append('Authorization', 'Basic ' + btoa(`${storedUsername}:${storedPassword}`));
 
