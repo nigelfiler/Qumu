@@ -13,16 +13,17 @@ The examples provided can be used as standalone utilities for test purposes or a
 Bulk upload multiple videos to your Qumu instance.
 
 **Key Features:**
-- Automatically uses the original filename as the Qumu Presentation title.
+- Automatically uses the original filename as the Qumu Presentation title, with option to add prefix (eg "BULK")
 - Streamlines the upload process for batches of media files.
 - Drag and drop video files onto the UI to start the process
+- Works with Presentation Types that have custom metadata fields, including mandatory fields
+- Provides CSV download of uploaded video
 
 **Important Notes:**
 - Do not use Presentation Types that:
-  - Require mandatory metadata
+  - Use **Creators Choice from All** where there is no default in the workflow. These will publish to **Draft** status and require manual processing to complete.
   - Use approval workflows
 
-  These workflows will cause the publishing process to fail, requiring manual user action in the Qumu portal to complete the publishing process
 
 ---
 
