@@ -11,6 +11,7 @@ The examples provided can be used as standalone utilities for test purposes or a
 
 **Purpose:**  
 Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time to limit API requests. 
+[**Screenshot**](./Screenshots/Bulk_Upload.png)
 
 **Key Features:**
 - Automatically uses the original filename as the Qumu Presentation title, with option to add prefix (eg "BULK").
@@ -25,7 +26,7 @@ Do not use Presentation Types that have **Creators Choice from All** in the work
 
 Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require manual processing by the designated approver.
 
-[**Screenshot**](./Screenshots/Bulk_Upload.png)
+
 
 ---
 
