@@ -11,6 +11,7 @@ The examples provided can be used as standalone utilities for test purposes or a
 
 **Purpose:**  
 Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time to limit API requests. 
+
 [**Screenshot**](./Screenshots/Bulk_Upload.png)
 
 **Key Features:**
