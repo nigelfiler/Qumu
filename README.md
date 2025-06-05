@@ -25,6 +25,7 @@ Do not use Presentation Types that have **Creators Choice from All** in the work
 
 Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require manual processing by the designated approver.
 
+[**Screenshot**](./Screenshots/Bulk_Upload.PNG)
 
 ---
 
