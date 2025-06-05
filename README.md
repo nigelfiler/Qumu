@@ -24,7 +24,7 @@ Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time 
 
 Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
 
-Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require manual processing by the designated approver.
+Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require the usual approval by the designated approver.
 
 
 
