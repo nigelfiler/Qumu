@@ -20,9 +20,9 @@ Bulk upload multiple videos to your Qumu instance.
 - Provides CSV download of uploaded video
 
 **Important Notes:**
-- Do not use Presentation Types that:
-  - Use **Creators Choice from All** where there is no default in the workflow. These will publish to **Draft** status and require manual processing to complete.
-  - Use approval workflows
+Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
+
+Approval workflows will require manual approval.
 
 
 ---
