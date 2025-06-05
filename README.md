@@ -10,14 +10,14 @@ The examples provided can be used as standalone utilities for test purposes or a
 ## 🔹 `QC_BulkUpload.html`
 
 **Purpose:**  
-Bulk upload multiple videos to your Qumu instance.
+Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time to limit API requests. 
 
 **Key Features:**
-- Automatically uses the original filename as the Qumu Presentation title, with option to add prefix (eg "BULK")
+- Automatically uses the original filename as the Qumu Presentation title, with option to add prefix (eg "BULK").
 - Streamlines the upload process for batches of media files.
-- Drag and drop video files onto the UI to start the process
-- Works with Presentation Types that have custom metadata fields, including mandatory fields
-- Provides CSV download of uploaded video
+- Drag and drop video files onto the UI to start the process.
+- Works with Presentation Types that have custom metadata fields, including mandatory fields.
+- Provides CSV report download of the uploaded videos.
 
 **Important Notes:**
 
