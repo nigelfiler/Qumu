@@ -7,7 +7,7 @@ The examples provided can be used as standalone utilities for test purposes or a
 
 ---
 
-## 🔹 `QC_BulkUpload.html`
+## 🔹 `QC_Bulk_Video_Upload.html`
 
 **Purpose:**  
 Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time to limit API requests. 
@@ -30,13 +30,20 @@ Video uploaded using Presentation Types with Approval workflows will have **STAT
 
 ---
 
-## 🔹 `QC_video-upload.html`
+## 🔹 `QC_Single_Video_Upload.html`
 
 **Purpose:**  
 Upload a **single video** to your Qumu instance.
 
 **Use Case:**  
 Can be used as sample code for integrating video uploads into platforms such as **WordPress** or other CMS solutions.
+Works with Presentation Types that have custom metadata.
+
+**Important Notes:**
+
+Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
+
+Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require the usual approval by the designated approver
 
 ---
 
