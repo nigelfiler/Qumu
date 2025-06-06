@@ -71,9 +71,10 @@
       <!-- Drag and Drop -->
       <div
         id="dropZone"
-        class="mt-6 border-2 border-dashed border-gray-400 rounded p-6 text-center text-gray-600 mb-4 cursor-pointer bg-gray-50 hover:bg-gray-100"
+        class="mt-6 border-2 border-dashed border-gray-400 rounded p-12 text-center text-gray-600 mb-4 cursor-pointer bg-gray-50 hover:bg-gray-100"
       >
-        <p>📂 Drag & drop one or more video files here, or click to select</p>
+        <p>📂 Drag & drop a maximum of 10 video files here,</p> <p>or click to select a single video</p>
+		
         <input
           type="file"
           id="videoFile"
@@ -81,6 +82,8 @@
           class="hidden"
           multiple
         />
+		
+		
       </div>
       <div
         id="videoFileName"
@@ -101,32 +104,36 @@
       >
         ⬇️ Download CSV Report
       </button>
+	  
+	  <button
+	id="resetBtn"
+	class="mt-2 bg-gray-500 text-white px-4 py-2 rounded w-full hover:bg-gray-600">
+	🔄 Clear Jobs
+	</button>
 
-      <button
-        id="resetBtn"
-        class="mt-2 bg-gray-500 text-white px-4 py-2 rounded w-full hover:bg-gray-600"
-      >
-        🔄 Reset Upload Tool
-      </button>
+	  
+      <div class="max-h-[30rem] overflow-y-auto">
+      <table id="uploadTable" class="min-w-full text-sm text-left mb-4 hidden border">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="border px-4 py-2">Filename</th>
+      <th class="border px-4 py-2">GUID</th>
+      <th class="border px-4 py-2 w-48">Status</th>
 
-      <table
-        id="uploadTable"
-        class="min-w-full text-sm text-left mb-4 hidden border"
-      >
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="border px-4 py-2">Filename</th>
-            <th class="border px-4 py-2">GUID</th>
-            <th class="border px-4 py-2 w-48">Status</th>
-          </tr>
-        </thead>
-        <tbody id="uploadTableBody" class="bg-white"></tbody>
-      </table>
+    </tr>
+  </thead>
+  <tbody id="uploadTableBody" class="bg-white"></tbody>
+</table>
+</div>
+
+      
+      
+      
 
       <div
         id="status"
         class="mt-4 text-sm text-gray-800 space-y-1"
-        style="height: 300px; overflow-y: auto"
+        style="height: 100px; overflow-y: auto"
       ></div>
       <div id="spinner" class="hidden mt-2 flex justify-center">
         <svg
@@ -150,26 +157,30 @@
           ></path>
         </svg>
       </div>
-
-      <div
-        id="completionBanner"
-        class="hidden mt-6 p-4 bg-green-100 text-green-800 font-semibold text-center border border-green-300 rounded"
-      >
-        ✅ All uploads have been processed - Check the Status for more
-        information.
-      </div>
+	  
+	  <div id="completionBanner" class="hidden mt-6 p-4 bg-green-100 text-green-800 font-semibold text-center border border-green-300 rounded">
+      ✅ All uploads have been processed - Check the Status for more information.
+    </div>
+	  
+	  
+	  
+	  
+	  
     </div>
 
     <script>
-      let authHeader = ""
-      const kuluGuidToFilename = {}
+      let authHeader = "";
+      const kuluGuidToFilename = {};
 
-      ;(instance = ""), (kuluTypesMap = {})
+        instance = "",
+        kuluTypesMap = {}
       let uploadResults = []
-      let completedUploads = 0
-      let totalUploads = 0
-      const uploadTable = document.getElementById("uploadTable")
-      const uploadTableBody = document.getElementById("uploadTableBody")
+	  let completedUploads = 0;
+	  let totalUploads = 0;
+	  const uploadTable = document.getElementById('uploadTable');
+	  const uploadTableBody = document.getElementById('uploadTableBody');
+
+
 
       document
         .getElementById("loginForm")
@@ -331,14 +342,18 @@
         .getElementById("submitBtn")
         .addEventListener("click", async (e) => {
           e.preventDefault()
-
-          uploadResults = []
-          completedUploads = 0
-          totalUploads = 0
-          document.getElementById("completionBanner").classList.add("hidden")
-          uploadTableBody.innerHTML = ""
-          uploadTable.classList.add("hidden")
-
+		  document.getElementById('submitBtn').classList.add('hidden');
+		  
+		  
+          uploadResults = [];
+		  completedUploads = 0;
+			totalUploads = 0;
+		document.getElementById('completionBanner').classList.add('hidden');
+		uploadTableBody.innerHTML = '';
+		uploadTable.classList.add('hidden');
+		  
+		  
+		  
           const files = Array.from(document.getElementById("videoFile").files)
           const typeGuid = document.getElementById("kuluType").value
           const titlePrefix = document
@@ -347,7 +362,7 @@
           const spinner = document.getElementById("spinner")
           const statusDiv = document.getElementById("status")
           if (!typeGuid || files.length === 0)
-            return alert("Select a type and drop videos first.")
+            return alert("Select a Presentation Type and drop videos first.")
 
           const setStatus = (msg, type = "info") => {
             const colors = {
@@ -362,18 +377,20 @@
           clearStatus()
           spinner.classList.remove("hidden")
 
-          completedUploads = 0
-          totalUploads = files.length
-          document.getElementById("completionBanner").classList.add("hidden")
+		completedUploads = 0;
+		totalUploads = files.length;
+		document.getElementById('completionBanner').classList.add('hidden');
+
+
 
           for (const file of files) {
             try {
               const title = titlePrefix
                 ? `${titlePrefix} - ${file.name.replace(/\.[^/.]+$/, "")}`
                 : file.name.replace(/\.[^/.]+$/, "")
-              updateUploadRow(file.name, "", "Creating presentation")
+                updateUploadRow(file.name, '', 'Creating presentation');
 
-              //   setStatus(`📤 Creating: ${title}`)
+           //   setStatus(`📤 Creating: ${title}`)
               const metadata = buildMetadataFromForm()
               const res = await fetch(
                 `https://${instance}.qumucloud.com/api/2.2/rest/kulus`,
@@ -392,11 +409,12 @@
               if (!res.ok) throw new Error(`Failed to create: ${res.status}`)
               const data = await res.json()
               const kuluGuid = data.kulu.guid
-              kuluGuidToFilename[kuluGuid] = file.name
+              kuluGuidToFilename[kuluGuid] = file.name;
 
-              updateUploadRow(file.name, kuluGuid, "Uploading Video")
+              updateUploadRow(file.name, kuluGuid, 'Uploading Video');
 
-              // setStatus(`✅ Created GUID: ${kuluGuid}`, "success")
+
+             // setStatus(`✅ Created GUID: ${kuluGuid}`, "success")
               const formData = new FormData()
               formData.append("file", file)
               const upload = await fetch(
@@ -408,54 +426,55 @@
                 },
               )
               if (!upload.ok) throw new Error(`Upload failed: ${upload.status}`)
-              // setStatus(`✅ Uploaded ${file.name}`, "success")
-              updateUploadRow(file.name, kuluGuid, "Uploaded")
+             // setStatus(`✅ Uploaded ${file.name}`, "success")
+              updateUploadRow(file.name, kuluGuid, 'Uploaded');
 
               pollStatus(kuluGuid, setStatus, file.name)
-              // statusDiv.innerHTML += `<hr class="my-2 border-t border-gray-300" />`;
+			 // statusDiv.innerHTML += `<hr class="my-2 border-t border-gray-300" />`;
 
-              // uploadResults.push({
+             // uploadResults.push({
               //  filename: file.name,
               //  status: "Success",
-              // url: `https://${instance}.qumucloud.com/view/${kuluGuid}`,
+               // url: `https://${instance}.qumucloud.com/view/${kuluGuid}`,
               //}
-              //)
-
-              completedUploads++
-              if (completedUploads === totalUploads) {
-                document
-                  .getElementById("completionBanner")
-                  .classList.remove("hidden")
-              }
+			  //)
+			  
+			  completedUploads++;
+			if (completedUploads === totalUploads) {
+			document.getElementById('completionBanner').classList.remove('hidden');
+			}
+			  
             } catch (err) {
-              //  setStatus(`❌ ${file.name}: ${err.message}`, "error")
-              //  statusDiv.innerHTML += `<hr class="my-2 border-t border-gray-300" />`;
-              updateUploadRow(file.name, "", `❌ ${err.message}`)
+            //  setStatus(`❌ ${file.name}: ${err.message}`, "error")
+			//  statusDiv.innerHTML += `<hr class="my-2 border-t border-gray-300" />`;
+			  updateUploadRow(file.name, '', `❌ ${err.message}`);
 
               uploadResults.push({
                 filename: file.name,
                 status: `Failed ${err.message}`,
                 url: "",
               })
-
-              completedUploads++
-              if (completedUploads === totalUploads) {
-                document
-                  .getElementById("completionBanner")
-                  .classList.remove("hidden")
-              }
+			  
+			  completedUploads++;
+				if (completedUploads === totalUploads) {
+			document.getElementById('completionBanner').classList.remove('hidden');
+			}
             }
           }
+		  
+		  videoInput.value = null;
+		  fileNameDisplay.innerHTML = '';
+fileNameDisplay.classList.add('hidden');
 
-          videoInput.value = null
-          fileNameDisplay.innerHTML = ""
-          fileNameDisplay.classList.add("hidden")
 
           spinner.classList.add("hidden")
+		  
+		  if (uploadTableBody.children.length > 0) {
+  document.getElementById("downloadCsvBtn").classList.remove("hidden");
+}
 
-          if (uploadTableBody.children.length > 0) {
-            document.getElementById("downloadCsvBtn").classList.remove("hidden")
-          }
+		  
+		  
 
           if (uploadResults.length > 0) {
             document.getElementById("downloadCsvBtn").classList.remove("hidden")
@@ -463,57 +482,72 @@
         })
 
       function pollStatus(kuluGuid, setStatus) {
-        const interval = setInterval(async () => {
-          try {
-            const response = await fetch(
-              `https://${instance}.qumucloud.com/api/2.2/rest/kulus/${kuluGuid}`,
-              {
-                headers: {
-                  Authorization: authHeader,
-                  Accept: "application/json",
-                },
-              },
-            )
-            const data = await response.json()
-            const state = data?.kulu?.state || "UNKNOWN"
-            const filename = kuluGuidToFilename[kuluGuid] || ""
+  const interval = setInterval(async () => {
+    try {
+      const response = await fetch(`https://${instance}.qumucloud.com/api/2.2/rest/kulus/${kuluGuid}`, {
+        headers: { Authorization: authHeader, Accept: 'application/json' }
+      });
+      const data = await response.json();
+      
+	  
+	  
+	const state = data?.kulu?.state || 'UNKNOWN';
+	const filename = kuluGuidToFilename[kuluGuid] || '';
+	const row = document.querySelector(`tr[data-filename="${filename}"]`);
+	const statusCell = row?.querySelector('.status-cell');
 
-            //  setStatus(`ℹ️ State: ${state}`);
-            updateUploadRow(filename, kuluGuid, `🌀 ${state}`)
+	// If already marked as published, skip everything
+	if (statusCell?.textContent === '✅ Published') {
+	  clearInterval(interval);
+	  return;
+	}
 
-            if (state === "PUBLISHED") {
-              clearInterval(interval)
-              //  setStatus(`<a href="https://${instance}.qumucloud.com/view/${kuluGuid}" target="_blank" class="text-indigo-600 underline">🎥 View</a>`);
-              updateUploadRow(filename, kuluGuid, "✅ Published")
-            } else if (state === "DRAFT") {
-              // Attempt to publish
-              const publishRes = await fetch(
-                `https://${instance}.qumucloud.com/api/2.2/rest/kulus/${kuluGuid}`,
-                {
-                  method: "POST",
-                  headers: {
-                    Authorization: authHeader,
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                  },
-                  body: JSON.stringify({ kulu: { state: "PUBLISHED" } }),
-                },
-              )
-              if (!publishRes.ok) {
-                throw new Error(`Failed to publish: ${publishRes.status}`)
-              } else {
-                //  setStatus('🚀 Publishing presentation...', 'success');
-                updateUploadRow(filename, kuluGuid, "🚀 Publishing")
-              }
-            }
-          } catch (err) {
-            const filename = kuluGuidToFilename[kuluGuid] || ""
-            // setStatus(`❌ Polling error: ${err.message}`, 'error');
-            updateUploadRow(filename, kuluGuid, `❌ Polling error`)
-            clearInterval(interval)
-          }
-        }, 15000)
-      }
+	// Show updated polling state
+	updateUploadRow(filename, kuluGuid, `🌀 ${state}`);
+
+	// Handle published
+	if (state === 'PUBLISHED') {
+	  updateUploadRow(filename, kuluGuid, '✅ Published');
+	  clearInterval(interval);
+	  return;
+	}
+
+	// Handle draft → publish transition
+	if (state === 'DRAFT') {
+	  const publishRes = await fetch(`https://${instance}.qumucloud.com/api/2.2/rest/kulus/${kuluGuid}`, {
+		method: 'POST',
+		headers: {
+		  Authorization: authHeader,
+		  'Content-Type': 'application/json',
+		  Accept: 'application/json'
+		},
+		body: JSON.stringify({ kulu: { state: 'PUBLISHED' } })
+	  });
+
+	  if (!publishRes.ok) {
+		throw new Error(`Failed to publish: ${publishRes.status}`);
+	  } else {
+		updateUploadRow(filename, kuluGuid, '🚀 Publishing');
+	  }
+	}
+
+	  
+	  
+	    
+	  
+	  
+	  
+	  
+    } catch (err) {
+      const filename = kuluGuidToFilename[kuluGuid] || '';
+     // setStatus(`❌ Polling error: ${err.message}`, 'error');
+      updateUploadRow(filename, kuluGuid, `❌ Polling error`);
+      clearInterval(interval);
+    }
+  }, 15000);
+}
+
+       
 
       const dropZone = document.getElementById("dropZone")
       const videoInput = document.getElementById("videoFile")
@@ -527,102 +561,156 @@
       dropZone.addEventListener("dragleave", () =>
         dropZone.classList.remove("bg-indigo-50"),
       )
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault()
-        dropZone.classList.remove("bg-indigo-50")
-        const files = Array.from(e.dataTransfer.files).filter((file) =>
-          file.type.startsWith("video/"),
-        )
-        if (files.length === 0) return alert("Please drop valid video files.")
-        videoInput.files = e.dataTransfer.files
-        showFileList(files)
-      })
-      videoInput.addEventListener("change", () => {
-        const files = Array.from(videoInput.files)
-        if (files.length > 0) showFileList(files)
-      })
+	  
+	  
+	  dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone.classList.remove("bg-indigo-50");
+  const droppedFiles = Array.from(e.dataTransfer.files).filter(file =>
+    file.type.startsWith("video/")
+  );
+
+  if (droppedFiles.length === 0) {
+    alert("Please drop valid video files.");
+    return;
+  }
+
+  if (droppedFiles.length > 10) {
+    alert("Maximum of 10 videos allowed.");
+    return;
+  }
+
+  const dt = new DataTransfer();
+  droppedFiles.slice(0, 10).forEach(file => dt.items.add(file));
+  videoInput.files = dt.files;
+
+  showFileList(droppedFiles.slice(0, 10));
+});
+
+	  
+	  
+
+
+videoInput.addEventListener("change", () => {
+  const files = Array.from(videoInput.files);
+  if (files.length > 10) {
+    alert("Maximum of 10 videos allowed.");
+    videoInput.value = null;
+    fileNameDisplay.innerHTML = '';
+    fileNameDisplay.classList.add("hidden");
+    return;
+  }
+  showFileList(files);
+});
+
+	  
+	  
       function showFileList(files) {
         fileNameDisplay.innerHTML = `<ul class="list-disc pl-5">${files.map((f) => `<li>${f.name}</li>`).join("")}</ul>`
         fileNameDisplay.classList.remove("hidden")
       }
-
-      function updateUploadRow(filename, guid, statusText) {
-        let row = document.querySelector(`tr[data-filename="${filename}"]`)
-        if (!row) {
-          row = document.createElement("tr")
-          row.setAttribute("data-filename", filename)
-          row.innerHTML = `
+      
+      
+	  function updateUploadRow(filename, guid, statusText) {
+  let row = document.querySelector(`tr[data-filename="${filename}"]`);
+  if (!row) {
+    row = document.createElement('tr');
+    row.setAttribute('data-filename', filename);
+    row.innerHTML = `
       <td class="border px-4 py-2">${filename}</td>
       <td class="border px-4 py-2 guid-cell text-gray-500 italic">Creating...</td>
       <td class="border px-4 py-2 status-cell text-gray-500">Initializing</td>
-    `
-          uploadTableBody.appendChild(row)
-          uploadTable.classList.remove("hidden")
-        }
+    `;
+    uploadTableBody.appendChild(row);
+    uploadTable.classList.remove('hidden');
+  }
 
-        if (guid) row.querySelector(".guid-cell").textContent = guid
+  const guidCell = row.querySelector('.guid-cell');
+  const statusCell = row.querySelector('.status-cell');
 
-        if (statusText) {
-          const statusCell = row.querySelector(".status-cell")
-          statusCell.textContent = statusText
+  if (guid) {
+    // Only make the GUID a link if publishing is complete
+    if (statusText === '✅ Published') {
+      const link = document.createElement('a');
+      link.href = `https://${instance}.qumucloud.com/view/${guid}`;
+      link.target = '_blank';
+      link.className = 'text-blue-600 underline';
+      link.textContent = guid;
+      guidCell.textContent = '';
+      guidCell.appendChild(link);
+    } else {
+      guidCell.textContent = guid;
+      guidCell.className = 'border px-4 py-2 guid-cell text-gray-500 italic';
+    }
+  }
 
-          // Apply bold styling for Published status
-          if (statusText.trim() === "✅ Published") {
-            statusCell.classList.add("font-semibold")
-          } else {
-            statusCell.classList.remove("font-semibold")
-          }
-        }
-      }
+  if (statusText) {
+    statusCell.textContent = statusText;
+    if (statusText === '✅ Published') {
+      statusCell.classList.add('font-bold');
+    } else {
+      statusCell.classList.remove('font-bold');
+    }
+  }
+}
 
-      document.getElementById("resetBtn").addEventListener("click", () => {
-        uploadResults = []
-        completedUploads = 0
-        totalUploads = 0
+	  
+	  
+	  
 
-        uploadTableBody.innerHTML = ""
-        uploadTable.classList.add("hidden")
 
-        document.getElementById("videoFile").value = null
-        document.getElementById("videoFileName").innerHTML = ""
-        document.getElementById("videoFileName").classList.add("hidden")
 
-        document.getElementById("status").innerHTML = ""
-        document.getElementById("completionBanner").classList.add("hidden")
-        document.getElementById("downloadCsvBtn").classList.add("hidden")
-      })
 
-      document
-        .getElementById("downloadCsvBtn")
-        .addEventListener("click", () => {
-          const rows = Array.from(
-            document.querySelectorAll("#uploadTableBody tr"),
-          )
-          if (rows.length === 0) return
 
-          const csvRows = [["Filename", "GUID", "Status"]]
 
-          rows.forEach((row) => {
-            const filename = row.children[0]?.textContent?.trim() || ""
-            const guid = row.children[1]?.textContent?.trim() || ""
-            const status = row.children[2]?.textContent?.trim() || ""
-            csvRows.push([filename, guid, status])
-          })
 
-          const csvContent = csvRows
-            .map((e) => e.map((v) => `"${v}"`).join(","))
-            .join("\n")
-          const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-          })
-          const url = URL.createObjectURL(blob)
+ document.getElementById("resetBtn").addEventListener("click", () => {
+  uploadResults = [];
+  completedUploads = 0;
+  totalUploads = 0;
 
-          const link = document.createElement("a")
-          link.href = url
-          link.download = `qumu_bulk_upload_report_${new Date().toISOString().slice(0, 10)}.csv`
-          link.click()
-          URL.revokeObjectURL(url)
-        })
+  uploadTableBody.innerHTML = '';
+  uploadTable.classList.add('hidden');
+  document.getElementById("submitBtn").classList.remove("hidden");
+
+  document.getElementById("videoFile").value = null;
+  document.getElementById("videoFileName").innerHTML = '';
+  document.getElementById("videoFileName").classList.add("hidden");
+
+  document.getElementById("status").innerHTML = '';
+  document.getElementById("completionBanner").classList.add("hidden");
+  document.getElementById("downloadCsvBtn").classList.add("hidden");
+});
+
+
+      document.getElementById("downloadCsvBtn").addEventListener("click", () => {
+  const rows = Array.from(document.querySelectorAll("#uploadTableBody tr"));
+  if (rows.length === 0) return;
+
+  const csvRows = [["Filename", "GUID", "Status"]];
+
+  rows.forEach(row => {
+    const filename = row.children[0]?.textContent?.trim() || '';
+    const guid = row.children[1]?.textContent?.trim() || '';
+    const status = row.children[2]?.textContent?.trim() || '';
+    csvRows.push([filename, guid, status]);
+  });
+
+  const csvContent = csvRows.map(e => e.map(v => `"${v}"`).join(",")).join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `qumu_bulk_upload_report_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+      
+      
+
+    
     </script>
   </body>
 </html>
