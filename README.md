@@ -57,6 +57,14 @@ Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
 ---
 
+## 🔹 `QC_Duplicate_User_Search.html`
+
+**Purpose:**  
+Searches all users and shows possible duplicate users, eg users that may have a local account and also a SAML account. The results table can be searched and also filtered by duplcicates. A report to be downloaded for further analysis.
+Has not been tested with very large datasets, but for datasets over 10,000 users the results will only show duplicates by default.
+
+---
+
 ## ⚠️ Disclaimer
 
 These Proof of Concept samples show how you could utilise the Qumu API.
