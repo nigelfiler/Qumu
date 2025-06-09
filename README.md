@@ -40,7 +40,7 @@ Upload a **single video** to your Qumu instance.
 Can be used as sample code for integrating video uploads into platforms such as **WordPress** or other CMS solutions.
 Works with Presentation Types that have custom metadata.
 
-**Important Notes:**
+**Important Notes:**  
 Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
 
 Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require the usual approval by the designated approver
