@@ -52,7 +52,7 @@ Video uploaded using Presentation Types with Approval workflows will have **STAT
 ## 🔹 `QC_Analytics.html`
 **Purpose:** 
 Shows how the Reporting API may be used to provide custom reports. 
-The sample also shows how to identify presentations that have not been viewed over a certain time period.
+The sample also shows how to identify presentations that have not been viewed over a certain time period.<br/>
 Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
 ---
@@ -60,9 +60,9 @@ Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 ## 🔹 `QC_Duplicate_User_Search.html`
 
 **Purpose:**  
-Searches all users within the instance and shows possible duplicate users, eg users that may have a local account and also a SAML account, or same name but different email address.
-The results table can be searched and also filtered by duplcicates. A report to be downloaded for further analysis.
-This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria. Loose will find more, but also generate false positives.
+Searches all users within the instance and shows possible duplicate users, eg users that may have a local account and also a SAML account, or same name but different email address.<br/>
+The results table can be searched and also filtered by duplicates. A report may be downloaded for further analysis.<br/>
+This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria.<br/> Loose will find more, but also generate false positives.
 
 **Important Notes:**
 Has not been tested with very large datasets, but for datasets over 10,000 users the results will only show duplicates by default.
