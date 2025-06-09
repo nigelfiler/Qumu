@@ -41,7 +41,6 @@ Can be used as sample code for integrating video uploads into platforms such as 
 Works with Presentation Types that have custom metadata.
 
 **Important Notes:**
-
 Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
 
 Video uploaded using Presentation Types with Approval workflows will have **STATUS: PENDING_APPROVAL** and require the usual approval by the designated approver
@@ -65,7 +64,6 @@ The results table can be searched and also filtered by duplicates. A report may 
 This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria.<br/> Loose will find more, but also generate false positives.
 
 **Important Notes:**
-
 Has not been tested with very large datasets, but for datasets over 10,000 users the results will only show duplicates by default.
 
 ---
