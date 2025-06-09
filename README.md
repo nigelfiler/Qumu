@@ -1,6 +1,6 @@
 # Qumu Cloud API Samples
 
-This repository contains sample code demonstrating how to interact with the **Qumu Cloud** platform using its APIs. 
+This repository contains sample code demonstrating how to interact with the **Qumu Cloud** platform using its API.  
 
 The examples provided can be used as standalone utilities for test purposes or as reference code for integration into other platforms.
 
