@@ -62,7 +62,7 @@ Searches all users within the instance and shows possible duplicate users, eg us
 The results table can be searched and also filtered by duplicates. A report may be downloaded for further analysis.<br/>
 This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria.<br/> Loose will find more, but also generate false positives.
 
-**Important Notes:**
+**Important Notes:**  
 Has not been tested with very large datasets, but for datasets over 10,000 users the results will only show duplicates by default.
 
 ---
