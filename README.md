@@ -20,7 +20,7 @@ Bulk upload multiple videos to your Qumu instance. Supports 10 videos at a time 
 - Streamlines the upload process for batches of media files.
 - Drag and drop video files onto the UI to start the process.
 - Works with Presentation Types that have custom metadata fields, including mandatory fields.
-- Provides CSV report download of the uploaded videos.
+- Provides a downloadable CSV report of the uploaded videos.
 
 **Important Notes:**  
 Do not use Presentation Types that have **Creators Choice from All** in the workflow where there is no default defined. These will publish to **Draft** status and require manual processing to complete.
