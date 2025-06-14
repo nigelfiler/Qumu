@@ -63,7 +63,8 @@ Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 **Purpose:**  
 Searches all users within the instance and shows possible duplicate users, eg users that may have a local account and also a SAML account, or same name but different email address.<br/>
 The results table can be searched and also filtered by duplicates. A report may be downloaded for further analysis.<br/>
-This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria.<br/> Loose will find more, but also generate false positives.
+This utility uses Levenshtein distance–based fuzzy matching algorithm and the user can select Strict, Balanced or Loose in the search criteria.<br/> Loose will find more, but also generate false positives.  
+This tool does not make any changes to the user database.
 
 **Important Notes:**  
 Has not been tested with very large datasets, but for datasets over 10,000 users the results will only show duplicates by default.
