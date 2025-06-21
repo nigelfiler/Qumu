@@ -199,6 +199,10 @@
               >Sort by Engagement Quality</label
             >
           </div>
+          <div class="flex items-center">
+  		<input type="checkbox" id="hideEventTable" class="mr-2 text-blue-600 focus:ring-blue-500" />
+  		<label for="hideEventTable" class="text-gray-700">Show Event Table</label>
+		</div>
 
 
 		<div class="flex items-center">
@@ -222,7 +226,7 @@
             checked
           />
           <label for="includeUserJourney" class="text-gray-700 text-sm"
-            >Include User Journey Timeline</label
+            >Show User Journey Timeline</label
           >
         </div>
 		
@@ -1130,7 +1134,13 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
                     <div class="text-xl font-bold text-yellow-600">${totalDurationFormatted}</div>
                   </div>
                 </div>
-                <div class="max-h-[40vh] overflow-y-auto relative">
+                
+               
+             
+                
+                <div id="eventTableWrapper" class="max-h-[40vh] overflow-y-auto relative">
+                  
+                  
                   <table class="min-w-full table-fixed border-separate border-spacing-0">
                     <thead class="sticky top-0 bg-gray-200 z-10">
                       <tr>
@@ -1186,6 +1196,30 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
 
               html += '</tbody></table></div>';
             result.innerHTML = html;
+            
+            
+            const tableWrapper = document.getElementById('eventTableWrapper');
+			const hideCheckbox = document.getElementById('hideEventTable');
+
+			if (tableWrapper && hideCheckbox) {
+ 		 const applyTableVisibility = () => {
+   		 tableWrapper.classList.toggle('hidden', !hideCheckbox.checked);
+ 		 };
+
+ 		 hideCheckbox.addEventListener('change', applyTableVisibility);
+ 		 applyTableVisibility();
+		}
+
+            
+            
+            
+
+
+       
+
+            
+            
+            
       		const includeJourney = document.getElementById('includeUserJourney')?.checked;
       		if (includeJourney) {
       		const journeyHtml = renderUserJourneySection(userJourneys);
@@ -1663,6 +1697,13 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
         link.click();
         document.body.removeChild(link);
       }
+      
+      
+ 
+  
+      
+      
+      
     </script>
   </body>
 </html>
