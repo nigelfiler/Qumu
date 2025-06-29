@@ -156,6 +156,8 @@
           Generate Report
         </h2>
         <div id="selectors" class="mb-4"></div>
+        
+        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label for="startDate" class="block font-medium text-gray-700"
@@ -223,7 +225,7 @@
             type="checkbox"
             id="includeUserJourney"
             class="mr-2 text-blue-600 focus:ring-blue-500"
-            checked
+            
           />
           <label for="includeUserJourney" class="text-gray-700 text-sm"
             >Show User Journey Timeline</label
@@ -869,6 +871,11 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
                 const device = event.device?.device || 'Unknown';
                 deviceTypes[device] = (deviceTypes[device] || 0) + 1;
               });
+              
+                            
+
+              
+              
 
               const deviceLabels = Object.keys(deviceTypes);
               const deviceData = Object.values(deviceTypes);
@@ -1135,6 +1142,45 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
                   </div>
                 </div>
                 
+                
+<div class="flex flex-wrap sm:flex-nowrap justify-between items-center gap-4 mb-4 text-center">
+
+  <div class="flex-1 bg-gray-100 rounded p-3 shadow">
+    <div class="text-sm text-gray-600">Clicks</div>
+    <div id="funnelClicks" class="text-2xl font-bold text-gray-800">—</div>
+  </div>
+
+  <div class="text-3xl text-gray-400">→</div>
+
+  <div class="flex-1 bg-blue-100 rounded p-3 shadow">
+    <div class="text-sm text-gray-600">Video Starts</div>
+    <div id="funnelStarts" class="text-2xl font-bold text-blue-600">—</div>
+  </div>
+
+  <div class="text-3xl text-gray-400">→</div>
+
+  <div class="flex-1 bg-yellow-100 rounded p-3 shadow">
+    <div class="text-sm text-gray-600">&gt;50% Watched</div>
+    <div id="funnelMidWatch" class="text-2xl font-bold text-yellow-600">—</div>
+  </div>
+
+  <div class="text-3xl text-gray-400">→</div>
+
+  <div class="flex-1 bg-green-100 rounded p-3 shadow">
+    <div class="text-sm text-gray-600">Watched to End</div>
+    <div id="funnelWatchedEnd" class="text-2xl font-bold text-green-600">—</div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+                
+                
                
              
                 
@@ -1196,6 +1242,27 @@ async function fetchKuluDetails(kuluGuid, startDate, rawEndDate, kuluTitle, thum
 
               html += '</tbody></table></div>';
             result.innerHTML = html;
+            
+            
+        // Funnel data
+		const clicks = allEvents.length;
+		const starts = allEvents.filter(e => (e.percentageViewed || 0) > 0).length;
+		const midWatch = allEvents.filter(e => (e.percentageViewed || 0) >= 50).length;
+		const watchedEnd = allEvents.filter(e => (e.percentageViewed || 0) >= 95).length;
+
+		//  Populate funnel boxes
+		document.getElementById('funnelClicks').textContent = clicks;
+		document.getElementById('funnelStarts').textContent = starts;
+		document.getElementById('funnelMidWatch').textContent = midWatch;
+		document.getElementById('funnelWatchedEnd').textContent = watchedEnd;
+
+
+
+
+            
+            
+            
+            
             
             
             const tableWrapper = document.getElementById('eventTableWrapper');
