@@ -53,7 +53,8 @@ Video uploaded using Presentation Types with Approval workflows will have **STAT
 Shows how the Reporting API may be used to provide custom reports. 
 After login select the folder and then a playlist within the folder and generate a viewing report for that playlist.  
 Clicking View Report will provide detailed viewing for a single presentation.  
-The sample also shows how to identify presentations that have not been viewed over a certain time period.<br/>
+This sample shows how to identify presentations that have not been viewed recently.<br/>
+This sample also shows how the api can be used to create detailed engagement reports such as viewer funnel, engagement over time and engagement quality.  
 Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
 ---
