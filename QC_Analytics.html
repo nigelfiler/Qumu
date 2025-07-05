@@ -225,7 +225,16 @@
             >Show User Journey Timeline</label>
         </div>
 
- 
+	<div class="flex items-center">
+  <input
+    type="checkbox"
+    id="includeZeroViews"
+    class="mr-2 text-blue-600 focus:ring-blue-500"
+  />
+  <label for="includeZeroViews" class="text-gray-700">Select presentations with zero views</label>
+</div>
+
+
 
           <div class="flex items-center">
             <label for="presentationLimit" class="text-gray-700 mr-2"
@@ -238,6 +247,7 @@
               <option value="50">50</option>
               <option value="100" selected>100</option>
               <option value="200">200</option>
+			  <option value="500">500</option>
             </select>
           </div>
           
@@ -468,29 +478,57 @@
               const scoreClass = score > 0.7 ? 'text-green-600 font-semibold'
                                : score > 0.4 ? 'text-yellow-600'
                                : 'text-gray-600';
-              scoreCell = `<td class="px-4 py-2 border ${scoreClass}">${score.toFixed(2)}</td>`;
+             scoreCell = `<td class="px-4 py-2 border ${scoreClass}">${Math.round(score)}</td>`;
+
             }
 
-              return `<tr>
-              <td class="px-4 py-2 border">
-                <a class="text-blue-600 underline kulu-link" href="${escapeHtml(kulu.player || '#')}"
-                   data-kulu-guid="${escapeHtml(kulu.guid || '')}" target="_blank">
-                  ${escapeHtml(kulu.title || 'Untitled')}
-                </a>
-              </td>
-              <td class="px-4 py-2 border">${kulu.reporting?.views ?? 0}</td>
-              ${scoreCell}
-              <td class="px-4 py-2 border">${
-                kulu.guid
-                  ? `<button class="kulu-details bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition"
-                       data-kulu-guid="${kulu.guid}" aria-label="View event details">View Report</button>`
-                  : '<span class="text-gray-500" title="No Kulu events found.">N/A</span>'
-              }</td>
-            </tr>`;
+
+
+
+ return `<tr>
+  <td class="px-4 py-2 border">
+    <a class="text-blue-600 underline kulu-link" href="${escapeHtml(kulu.player || '#')}"
+       data-kulu-guid="${escapeHtml(kulu.guid || '')}" target="_blank">
+      ${escapeHtml(kulu.title || 'Untitled')}
+    </a>
+  </td>
+  <td class="px-4 py-2 border">${kulu.reporting?.views ?? 0}</td>
+  ${scoreCell}
+  <td class="px-4 py-2 border">${
+    kulu.guid
+      ? `<button class="kulu-details bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition"
+           data-kulu-guid="${kulu.guid}" aria-label="View event details">View Report</button>`
+      : '<span class="text-gray-500" title="No Kulu events found.">N/A</span>'
+  }</td>
+  <td class="px-4 py-2 border text-center">
+    <input type="checkbox" class="kulu-checkbox" data-guid="${escapeHtml(kulu.guid || '')}" />
+  </td>
+</tr>`;
+
+
+
+
+			
+			
+			
 
             }).join('');
 
                 tbody.insertAdjacentHTML('beforeend', html);
+				const zeroViewCheckbox = document.getElementById('includeZeroViews');
+if (zeroViewCheckbox?.checked) {
+  const newRows = Array.from(tbody.querySelectorAll('tr'));
+  newRows.slice(-slice.length).forEach(row => {
+    const viewsCell = row.cells[1];
+    if (viewsCell && parseInt(viewsCell.textContent.trim(), 10) === 0) {
+      row.classList.add('bg-yellow-100');
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      if (checkbox) checkbox.checked = true;
+    }
+  });
+}
+
+				
                 index += chunkSize;
 
                 if (progressEl) {
@@ -499,10 +537,39 @@
                 }
 
                 if (index < data.length) {
-                  requestIdleCallback(renderChunk);
-                } else {
-                  if (progressEl) progressEl.textContent = `Rendering complete. (${data.length} rows)`;
-                }
+  requestIdleCallback(renderChunk);
+} else {
+  if (progressEl) progressEl.textContent = `Rendering complete. (${data.length} rows)`;
+
+  // ✅ Add download button after table
+  const downloadBtn = document.createElement('div');
+  downloadBtn.className = 'mt-4';
+  downloadBtn.innerHTML = `
+    <button id="downloadSelectedBtn"
+      class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+      Download Canonical Files
+    </button>
+			
+  `;
+  
+  
+  	downloadBtn.innerHTML = `
+  <button id="downloadSelectedBtn"
+    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mr-2">
+    Download Canonical Files
+  </button>
+  <button id="downloadCsvBtn"
+    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+    Export Canonical URLs as CSV
+  </button>
+`;
+
+  document.getElementById('result').appendChild(downloadBtn);
+}
+
+				
+				
+				
               }
 
               renderChunk();
@@ -1036,45 +1103,55 @@
                     const sortedDates = Object.keys(engagementByDate).sort();
                     const engagementCounts = sortedDates.map(date => engagementByDate[date]);
 
-      chartInstances.engagementOverTimeChart = new Chart(document.getElementById('engagementOverTimeChart'), {
-        type: 'line',
-        data: {
-          labels: sortedDates,
-          datasets: [{
-            label: '', // Optional: leave empty or remove
-            data: engagementCounts,
-            fill: false,
-            borderColor: '#2ecc71',
-            tension: 0.2,
-            pointRadius: 3
-          }]
+				chartInstances.engagementOverTimeChart = new Chart(document.getElementById('engagementOverTimeChart'), {
+  type: 'line',
+  data: {
+    labels: sortedDates,
+    datasets: [{
+      label: '',
+      data: engagementCounts,
+      fill: false,
+      borderColor: '#2ecc71',
+      tension: 0.2,
+      pointRadius: 3
+    }]
+  },
+  options: {
+    plugins: {
+      legend: {
+        display: false
+      },
+      title: {
+        display: true,
+        text: 'Engagement over Time',
+        font: {
+          size: 12
         },
-        options: {
-          plugins: {
-            legend: {
-              display: false // Hides the box
-            },
-            title: {
-              display: true,
-              text: 'Engagement over Time',
-              font: {
-                size: 12
-              },
-              padding: {
-                top: 10,
-                bottom: 20
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.parsed.y;
-                }
-              }
-            }
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return context.parsed.y;
           }
         }
-      });
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0  // 👈 This ensures whole numbers only
+        }
+      }
+    }
+  }
+});
+	  
+	  
 
 
 
@@ -1236,7 +1313,8 @@
                         <table class="min-w-full table-fixed border-separate border-spacing-0">
                           <thead class="sticky top-0 bg-gray-200 z-10">
                             <tr>
-                              <th class="px-4 py-2 border-b text-center">Device</th>
+							  <th class="px-4 py-2 border text-center">
+							  <th class="px-4 py-2 border-b text-center">Device</th>
                               <th class="px-2 py-2 border-b cursor-pointer select-none text-center" id="sortTimestamp">Date/Time <span id="timestampArrow" class="inline-block ml-1">▼</span></th>
                               <th class="px-2 py-2 border-b text-center">User</th>
                               <th class="px-4 py-2 border-b text-right cursor-pointer" id="sortPercentage">Viewed % <span id="sortArrow" class="inline-block ml-1">▼</span></th>
@@ -1586,17 +1664,25 @@
             	fetchedKulus.sort((a, b) => (b?.reporting?.views || 0) - (a?.reporting?.views || 0));
             	}
 
-                let html = `<div class="overflow-x-auto">
-              <table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report">
-                <thead>
-                  <tr class="bg-blue-100">
-                    <th class="px-4 py-2 border">Title</th>
-                    <th class="px-4 py-2 border">Views</th>
-                    <th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">Engagement Quality (0-100)</th>
+             
+			 let html = `
+  <div class="overflow-x-auto">
+    <table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report">
+<thead>
+  <tr class="bg-blue-100">
+    <th class="px-4 py-2 border">Title</th>
+    <th class="px-4 py-2 border">Views</th>
+    <th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">Engagement Quality (0-100)</th>
+    <th class="px-4 py-2 border">Viewing Report</th>
+    <th class="px-4 py-2 border text-center">
+      <input type="checkbox" id="selectAllCheckbox" title="Select All" />
+    </th>
+  </tr>
+</thead>
+<tbody>
+`;
 
-                  </tr>
-                </thead>
-                <tbody>`;
+			 
 
 
                 let count = 0;
@@ -1647,13 +1733,24 @@
               <div id="renderProgress" class="text-sm text-gray-600 mb-2">Rendering rows...</div>
               <div class="overflow-x-auto">
                 <table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report">
-                  <thead><tr class="bg-blue-100">
-                    <th class="px-4 py-2 border">Title</th>
-                    <th class="px-4 py-2 border">Views</th>
-            		<th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">Engagement Quality (0-100)</th>
-                    <th class="px-4 py-2 border">Viewing Report</th>
+				
+				
+<thead>
+  <tr class="bg-blue-100">
+    <th class="px-4 py-2 border">Title</th>
+    <th class="px-4 py-2 border">Views</th>
+    <th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">
+      Engagement Quality (0-100)
+    </th>
+    <th class="px-4 py-2 border">Viewing Report</th>
+    <th class="px-4 py-2 border text-center">
+      <input type="checkbox" id="selectAllRows" title="Select All" />
+    </th>
+  </tr>
+</thead>
 
-                  </tr></thead>
+
+
                   <tbody></tbody>
                 </table>
               </div>
@@ -1692,13 +1789,20 @@
               <div class="overflow-x-auto">
                 <table class="min-w-full border text-sm text-left" aria-label="Qumu Viewing Report">
             <thead>
-              <tr class="bg-blue-100">
-                <th class="px-4 py-2 border">Title</th>
-                <th class="px-4 py-2 border">Views</th>
-                <th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">Engagement Quality (0-100)</th>
-                <th class="px-4 py-2 border">Viewing Report</th>
-              </tr>
-            </thead>
+  <tr class="bg-blue-100">
+    <th class="px-4 py-2 border">Title</th>
+    <th class="px-4 py-2 border">Views</th>
+    <th class="px-4 py-2 border" title="Blend of % viewed and time watched normalized by video length">Engagement Quality (0-100)</th>
+    <th class="px-4 py-2 border">Viewing Report</th>
+    <th class="px-4 py-2 border text-center">
+      <input type="checkbox" id="selectAllCheckbox" title="Select All" />
+    </th>
+  </tr>
+</thead>
+
+			
+			
+			
                   <tbody>
             `;
 
@@ -1715,12 +1819,20 @@
             		html += `<tr>
             	<td class="px-4 py-2 border"><a class="text-blue-600 underline kulu-link" href="${escapeHtml(kulu.player || '#')}" data-kulu-guid="${escapeHtml(kulu.guid || '')}" target="_blank">${escapeHtml(kulu.title || 'Untitled')}</a></td>
             	<td class="px-4 py-2 border">${kulu.reporting?.views ?? 0}</td>
-            	<td class="px-4 py-2 border ${scoreClass}">${score.toFixed(2)}</td>
+            	<td class="px-4 py-2 border ${scoreClass}">${Math.round(score)}</td>
+
             	<td class="px-4 py-2 border">${
                 kulu.guid
                   ? `<button class="kulu-details bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition" data-kulu-guid="${kulu.guid}">View Report</button>`
                   : '<span class="text-gray-500" title="No Kulu events found.">N/A</span>'
             	}</td>
+				
+				<td class="px-4 py-2 border text-center">
+      <input type="checkbox" class="kulu-checkbox" data-guid="${escapeHtml(kulu.guid || '')}" />
+    </td>
+				
+				
+				
             	</tr>`;
 
 
@@ -1728,6 +1840,24 @@
                   html += '</tbody></table></div>';
 
                   document.getElementById('result').innerHTML = html;
+				  
+				  // Re-add download buttons
+const downloadBtn = document.createElement('div');
+downloadBtn.className = 'mt-4';
+downloadBtn.innerHTML = `
+  <button id="downloadSelectedBtn"
+    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition mr-2">
+    Download Canonical Files
+  </button>
+  <button id="downloadCsvBtn"
+    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+    Export Canonical URLs as CSV
+  </button>
+`;
+document.getElementById('result').appendChild(downloadBtn);
+
+				  
+				  
                   toggleHidden(document.getElementById('buttonArea'), true);
                 });
 
@@ -1859,8 +1989,115 @@ async function downloadAsImageAndPDF() {
 
 
 
+	document.addEventListener('change', function (e) {
+  if (e.target.id === 'selectAllCheckbox') {
+    const checked = e.target.checked;
+    document.querySelectorAll('.kulu-checkbox').forEach(cb => {
+      cb.checked = checked;
+    });
+  }
+});
+
 	
-			
+		document.addEventListener('click', async function (e) {
+  if (e.target.id !== 'downloadSelectedBtn') return;
+
+  const checkboxes = document.querySelectorAll('.kulu-checkbox:checked');
+  if (checkboxes.length === 0) {
+    alert('No items selected.');
+    return;
+  }
+
+  const guids = Array.from(checkboxes).map(cb => cb.dataset.guid);
+  const selectedKulus = currentKuluData.filter(k => guids.includes(k.guid));
+
+for (const kulu of selectedKulus) {
+  const variants = kulu?.media?.variants || [];
+  const canonical = variants.find(v => v.formatCode === 'canonical');
+
+  if (canonical?.url) {
+    try {
+      const response = await fetch(canonical.url, {
+        mode: 'cors'
+      });
+      if (!response.ok) throw new Error(`Failed to fetch ${canonical.url}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${kulu.title || kulu.guid || 'video'}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed for', canonical.url, err);
+    }
+  } else {
+    console.warn(`No canonical format found for: ${kulu.title}`);
+  }
+}
+
+
+});
+
+document.addEventListener('click', function (e) {
+  if (e.target.id !== 'downloadCsvBtn') return;
+
+  const checkboxes = document.querySelectorAll('.kulu-checkbox:checked');
+  if (checkboxes.length === 0) {
+    alert('No items selected.');
+    return;
+  }
+
+  const guids = Array.from(checkboxes).map(cb => cb.dataset.guid);
+  const selectedKulus = currentKuluData.filter(k => guids.includes(k.guid));
+
+
+
+let csv = 'Title,Publisher,Views,Published,GUID,Canonical URL\n';
+
+selectedKulus.forEach(kulu => {
+  const variants = kulu?.media?.variants || [];
+  const canonical = variants.find(v => v.formatCode === 'canonical');
+
+  if (canonical?.url) {
+    const title = (kulu.title || kulu.guid || 'Untitled').replace(/"/g, '""');
+    const publisher = (kulu.owner?.name || 'Unknown').replace(/"/g, '""');
+    const views = kulu.reporting?.views ?? 0;
+    const published = kulu?.created
+      ? new Date(kulu.created).toLocaleDateString('en-GB')
+      : '';
+    const guid = kulu.guid || '';
+
+    csv += `"${title}","${publisher}",${views},"${published}","${guid}","${canonical.url}"\n`;
+  }
+});
+
+
+
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'canonical_links.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+document.addEventListener('change', function (e) {
+  if (e.target.id === 'selectAllRows') {
+    const checked = e.target.checked;
+    document.querySelectorAll('.kulu-checkbox').forEach(cb => {
+      cb.checked = checked;
+    });
+  }
+});
+
+
 			
 			
 			
