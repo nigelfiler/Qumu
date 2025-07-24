@@ -50,7 +50,7 @@ Video uploaded using Presentation Types with Approval workflows will have **STAT
 
 ## 🔹 `QC_Analytics.html`
 **Purpose:**   
-Shows how the Reporting API may be used to provide custom reports. 
+Shows how the Reporting API may be used to provide custom reports.  
 After login select the folder and then a playlist within the folder and generate a viewing report for that playlist.  
 Clicking View Report will provide detailed viewing for a single presentation.  
 This sample shows how to identify presentations that have not been viewed recently.<br/>
