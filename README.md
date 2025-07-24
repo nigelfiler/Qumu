@@ -75,7 +75,7 @@ Has not been tested with very large datasets, but for datasets over 10,000 users
 ## 🔹 `QC-Metadata-Editing.html`
 
 **Purpose:**  
-Shows how the Metadata API may be used to edit existing metadata for presentations in the CMS.
+Shows how the Metadata API may be used to edit existing metadata for presentations in the CMS.  
 This tool only updates the **Description** and **Tags** but can be adapted for custom metadata fields that may be defined.
 
 
