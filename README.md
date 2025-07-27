@@ -72,7 +72,7 @@ Has not been tested with very large datasets, but for datasets over 10,000 users
 
 ---
 
-## 🔹 `QC-Metadata-Editing.html`
+## 🔹 `QC_Metadata-Editing.html`
 
 **Purpose:**  
 Shows how the Metadata API may be used to edit existing metadata for presentations in the CMS.  
