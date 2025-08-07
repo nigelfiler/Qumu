@@ -58,7 +58,7 @@ This sample also shows how the api can be used to create detailed engagement rep
 Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
 **API**  
-Uses the following API's
+Uses the following API's:
 - Folders API
 - Smart Searches API
 - Reporting API
@@ -74,7 +74,7 @@ This utility uses Levenshtein distance–based fuzzy matching algorithm and the 
 This tool does not make any changes to the user database.
 
 **API**  
-Uses the following API's
+Uses the following API's:
 - Users API
 
 **Important Notes:**  
@@ -89,7 +89,7 @@ Shows how the Metadata API may be used to edit existing metadata for presentatio
 This tool only updates the **Description** and **Tags** but can be adapted for other custom metadata fields that may be defined.
 
 **API**  
-Uses the following API's
+Uses the following API's:
 - Folders API
 - Smart Searches API
 - Metadata API
