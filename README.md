@@ -57,6 +57,12 @@ This sample shows how to identify presentations that have not been viewed recent
 This sample also shows how the api can be used to create detailed engagement reports such as viewer funnel, engagement over time and engagement quality.  
 Sample Report:  [**Screenshot**](./Screenshots/Analytics_report.PNG)
 
+**API**
+Uses the following API's
+- Folders API
+- Smart Searches API
+- Reporting API
+- Presentation API
 ---
 
 ## 🔹 `QC_Duplicate_User_Search.html`
