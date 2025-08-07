@@ -88,6 +88,12 @@ Has not been tested with very large datasets, but for datasets over 10,000 users
 Shows how the Metadata API may be used to edit existing metadata for presentations in the CMS.  
 This tool only updates the **Description** and **Tags** but can be adapted for other custom metadata fields that may be defined.
 
+**API**  
+Uses the following API's
+- Folders API
+- Smart Searches API
+- Metadata API
+
 
 ---
 
