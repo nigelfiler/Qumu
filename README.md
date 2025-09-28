@@ -82,6 +82,20 @@ Has not been tested with very large datasets, but for datasets over 10,000 users
 
 ---
 
+## 🔹 `QC_Captions.html`
+
+**Purpose:**  
+Shows how the Captions API may be used to retrieve all caption tracks for presentations in the Qumu CMS.  
+This tool converts captions to transcripts and also provides a complete list of words used in the transcript.
+Captions and transcripts may be downloaded using the tool
+
+**API**  
+Uses the following API's:
+- Caption API
+
+
+---
+
 ## 🔹 `QC_Metadata_Editing.html`
 
 **Purpose:**  
@@ -96,6 +110,7 @@ Uses the following API's:
 
 
 ---
+
 
 ## ⚠️ Disclaimer
 
