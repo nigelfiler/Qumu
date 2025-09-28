@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Qumu Caption Tracks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Header Bar -->
+  <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold">Qumu Caption Tracks</h1>
+      </div>
+
+      <!-- Login Status -->
+      <div id="loginStatus" class="flex items-center space-x-4">
+        <div id="loggedOutStatus" class="flex items-center space-x-2">
+          <div class="w-2 h-2 bg-red-400 rounded-full"></div>
+          <span class="text-sm opacity-90">Not Connected</span>
+        </div>
+        <div id="loggedInStatus" class="hidden flex items-center space-x-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-sm opacity-90">Connected to</span>
+            <span id="connectedDomain" class="text-sm font-medium bg-white bg-opacity-20 px-2 py-1 rounded"></span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 opacity-75" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+            </svg>
+            <span id="connectedUser" class="text-sm font-medium"></span>
+          </div>
+          <button id="logoutButton"
+            class="text-sm bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded transition-colors">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mx-auto p-4 max-w-3xl">
+    <!-- Spinner overlay -->
+    <div id="spinner" class="hidden fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600"></div>
+      <div id="statusMessage" class="fixed inset-x-0 top-[60px] text-center text-white font-semibold z-50"></div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="bg-white p-6 rounded-lg shadow-md mb-4">
+      <h2 class="text-2xl font-semibold mb-4 text-gray-800">Connect to Qumu</h2>
+
+      <div class="mb-4">
+        <label for="domain" class="block font-medium text-gray-700">Domain:</label>
+        <input type="text" id="domain" placeholder="e.g., demo.qumucloud.com"
+               class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
+      </div>
+
+      <div class="mb-4">
+        <label for="username" class="block font-medium text-gray-700">Username:</label>
+        <input type="text" id="username"
+               class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="block font-medium text-gray-700">Password:</label>
+        <input type="password" id="password"
+               class="w-full border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
+      </div>
+
+      <button type="submit"
+              class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors flex items-center space-x-2">
+        <span>Connect</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+      </button>
+    </form>
+
+    <!-- Captions Page -->
+    <div id="captionsPage" class="hidden bg-white p-6 rounded-lg shadow-md">
+      <h3 class="text-lg font-semibold mb-4">Get Caption Tracks</h3>
+
+      <label for="kuluGuidInput" class="block mb-2 font-medium">Presentation GUID or Player URL</label>
+      <input type="text" id="kuluGuidInput" placeholder="e.g. 8HczM5TfFxv or https://&lt;domain&gt;/view/8HczM5TfFxv"
+             class="w-full p-2 mb-4 border rounded bg-gray-50">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button id="getCaptionsBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">📑 Get Captions</button>
+        <button id="downloadJsonBtn" class="bg-gray-200 text-gray-900 px-4 py-2 rounded hover:bg-gray-300" disabled>⬇️ Download JSON</button>
+      </div>
+
+      <div id="captionTableWrapper" class="mt-6 hidden">
+        <h4 class="font-semibold mb-2">Caption Tracks</h4>
+        <table id="captionTable" class="min-w-full border border-gray-300 rounded">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-3 py-2 text-left border-b border-gray-300">Language</th>
+              <th class="px-3 py-2 text-left border-b border-gray-300">Caption GUID</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="mt-2 text-xs text-gray-500">Tip: click a GUID to view a transcript.</p>
+      </div>
+
+      <div id="status" class="mt-4 text-sm text-gray-800 space-y-1" style="max-height: 280px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <!-- Transcript Modal with Search + Unique Words -->
+  <div id="transcriptModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative mx-auto mt-16 max-w-3xl bg-white rounded-xl shadow-lg p-6">
+      <div class="flex items-start justify-between gap-4">
+        <h5 id="transcriptTitle" class="text-lg font-semibold truncate">Transcript</h5>
+        <button id="closeModalBtn" class="rounded px-3 py-1 bg-gray-200 hover:bg-gray-300" aria-label="Close transcript">✕</button>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <label for="transcriptSearch" class="text-sm font-medium">Search:</label>
+        <input id="transcriptSearch" type="text" placeholder="Type to search…"
+               class="flex-1 min-w-[180px] p-2 border rounded bg-gray-50">
+        <div class="text-sm text-gray-600"><span id="searchCount">0</span> matches</div>
+        <div class="flex gap-2">
+          <button id="prevMatchBtn" class="rounded px-3 py-2 bg-gray-200 hover:bg-gray-300" disabled>Prev</button>
+          <button id="nextMatchBtn" class="rounded px-3 py-2 bg-gray-200 hover:bg-gray-300" disabled>Next</button>
+        </div>
+      </div>
+
+      <div class="mt-4 border rounded p-3 bg-gray-50" style="max-height: 40vh; overflow: auto;">
+        <div id="transcriptBody" class="whitespace-pre-wrap text-sm leading-6"></div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="copyTranscriptBtn" class="rounded px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">Copy</button>
+        <button id="downloadTranscriptBtn" class="rounded px-4 py-2 bg-gray-200 hover:bg-gray-300">Download .txt</button>
+
+        <!-- NEW: Unique Words controls -->
+        <button id="showUniqueBtn" class="rounded px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700">Unique words</button>
+        <button id="downloadUniqueBtn" class="rounded px-4 py-2 bg-gray-200 hover:bg-gray-300" disabled>Download words .txt</button>
+        <button id="copyWordsBtn" class="rounded px-4 py-2 bg-gray-200 hover:bg-gray-300" disabled>Copy words</button>
+      </div>
+
+      <!-- NEW: Unique Words panel -->
+      <div id="uniqueWordsPanel" class="mt-3 hidden">
+        <div class="flex items-center justify-between">
+          <h6 class="font-semibold text-sm">Unique Words <span class="text-gray-500">( <span id="uniqueCount">0</span> )</span></h6>
+          <span id="uniqueHint" class="text-xs text-gray-500">Title-cased, A–Z</span>
+        </div>
+        <div id="uniqueWordsList"
+     class="mt-2 p-3 bg-gray-50 border-t border-x border-b-4 border-gray-300 max-h-48 rounded text-sm leading-6 break-words overflow-y-auto">
+</div>
+      </div>
+
+      <p class="mt-2 text-xs text-gray-500">Tip: Press <kbd>Enter</kbd> for next match, <kbd>Shift</kbd>+<kbd>Enter</kbd> for previous.</p>
+    </div>
+  </div>
+
+<script>
+  // --- Shared state ---
+  let storedUsername = '';
+  let storedPassword = '';
+  let storedDomain   = '';
+  let authHeader     = '';
+  let lastCaptionPayload = null;
+  let lastTranscriptText = '';
+
+  // --- Convenience DOM refs ---
+  const spinner          = document.getElementById('spinner');
+  const statusDiv        = document.getElementById('status');
+  const downloadBtn      = document.getElementById('downloadJsonBtn');
+  const loggedOutStatus  = document.getElementById('loggedOutStatus');
+  const loggedInStatus   = document.getElementById('loggedInStatus');
+  const connectedDomain  = document.getElementById('connectedDomain');
+  const connectedUser    = document.getElementById('connectedUser');
+
+  // --- UI helpers ---
+  function toggleHidden(el, hide) { if (!el) return; el.classList.toggle('hidden', !!hide); }
+  function updateLoginStatus(isLoggedIn, domain = '', username = '') {
+    toggleHidden(loggedOutStatus, isLoggedIn);
+    toggleHidden(loggedInStatus, !isLoggedIn);
+    if (isLoggedIn) { connectedDomain.textContent = domain; connectedUser.textContent = username; }
+  }
+  function setStatus(message, type = 'info') {
+    const colorMap = { info: 'text-gray-800', success: 'text-green-600', error: 'text-red-600' };
+    statusDiv.insertAdjacentHTML('beforeend', `<p class="${colorMap[type]}">${message}</p>`);
+    statusDiv.scrollTop = statusDiv.scrollHeight;
+  }
+  function clearStatus() { statusDiv.innerHTML = ''; }
+  function updateStatusMessage(msg) {
+    const m = document.getElementById('statusMessage');
+    if (m) m.textContent = msg || '';
+  }
+
+  async function validateCredentials(username, password, domain) {
+    const url = `https://${domain}/api/2.2/rest/folders`;
+    const headers = { 'Authorization': 'Basic ' + btoa(`${username}:${password}`) };
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      const t = await res.text();
+      if (res.status === 401) throw new Error('Invalid username or password');
+      throw new Error(`Login failed: ${res.status} ${t}`);
+    }
+    return true;
+  }
+
+  // --- Prefill from localStorage ---
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('qumuLogin');
+    if (saved) {
+      try {
+        const { domain, username, password } = JSON.parse(saved);
+        if (domain && username && password) {
+          document.getElementById('domain').value = domain;
+          document.getElementById('username').value = username;
+          document.getElementById('password').value = password;
+        }
+      } catch {}
+    }
+  });
+  
+  
+
+  // --- Login flow ---
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const domain   = document.getElementById('domain').value.trim().replace(/^https?:\/\//,'').replace(/\/+$/,'');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!domain || !username || !password) return;
+
+    toggleHidden(spinner, false);
+    updateStatusMessage('Connecting…');
+
+    try {
+      await validateCredentials(username, password, domain);
+      storedDomain   = domain;
+      storedUsername = username;
+      storedPassword = password;
+      authHeader     = 'Basic ' + btoa(`${username}:${password}`);
+
+      localStorage.setItem('qumuLogin', JSON.stringify({ domain, username, password }));
+
+      updateLoginStatus(true, domain, username);
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('captionsPage').classList.remove('hidden');
+      setStatus('✅ Logged in successfully.', 'success');
+    } catch (err) {
+      alert(err.message || 'Login failed');
+    } finally {
+      toggleHidden(spinner, true);
+      updateStatusMessage('');
+    }
+  });
+
+  // --- Logout ---
+  document.getElementById('logoutButton').addEventListener('click', () => {
+    storedUsername = storedPassword = storedDomain = authHeader = '';
+    localStorage.removeItem('qumuLogin');
+    updateLoginStatus(false);
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('captionsPage').classList.add('hidden');
+    document.getElementById('domain').value   = '';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    clearStatus();
+  });
+
+  // --- Captions: GUID parsing + fetch + table render ---
+  function extractGuid(input) {
+    const s = String(input || '').trim();
+    const m = s.match(/\/view\/([A-Za-z0-9_-]+)/);
+    return m?.[1] || s;
+  }
+
+  async function fetchCaptions(kuluGuid) {
+    clearStatus();
+    toggleHidden(spinner, false);
+    updateStatusMessage('Fetching caption tracks…');
+    downloadBtn.disabled = true;
+    lastCaptionPayload   = null;
+
+    try {
+      const url = `https://${storedDomain}/api/2.2/rest/kulus/${encodeURIComponent(kuluGuid)}/captiontracks`;
+      const res = await fetch(url, { headers: { 'Authorization': authHeader, 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      lastCaptionPayload = data;
+
+      const tracks = Array.isArray(data.captionTracks) ? data.captionTracks : [];
+      if (tracks.length === 0) {
+        setStatus('⚠️ No caption tracks found.', 'info');
+        document.getElementById('captionTableWrapper').classList.add('hidden');
+        return;
+      }
+
+      const tbody = document.querySelector('#captionTable tbody');
+      tbody.innerHTML = '';
+      tracks.forEach(track => {
+        const lang = track.title || track.languageCode || 'Unknown';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-3 py-2 border-b border-gray-200">${lang}</td>
+          <td class="px-3 py-2 border-b border-gray-200 font-mono">
+            <button class="underline text-indigo-700 hover:text-indigo-900 break-all" data-guid="${track.guid}" data-lang="${lang}">${track.guid}</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('captionTableWrapper').classList.remove('hidden');
+      setStatus(`✅ Found ${tracks.length} caption track(s).`, 'success');
+      downloadBtn.disabled = false;
+    } catch (err) {
+      setStatus(`❌ Error fetching captions: ${err.message}`, 'error');
+      document.getElementById('captionTableWrapper').classList.add('hidden');
+    } finally {
+      toggleHidden(spinner, true);
+      updateStatusMessage('');
+    }
+  }
+
+  document.getElementById('getCaptionsBtn').addEventListener('click', () => {
+    if (!storedDomain) return alert('Please login first.');
+    const raw  = document.getElementById('kuluGuidInput').value;
+    const guid = extractGuid(raw);
+    if (!guid) return alert('Please enter a Kulu GUID or paste a /view/<guid> URL.');
+    fetchCaptions(guid);
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if (!lastCaptionPayload) return;
+    const blob = new Blob([JSON.stringify(lastCaptionPayload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'captiontracks.json';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+  
+  
+
+
+document.addEventListener('keydown', (e) => {
+  if (transcriptModal.classList.contains('hidden')) return;
+
+  if (e.key === 'Escape') return closeModal();
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Ensure highlights match the current query before moving
+    highlightSearch(searchInput.value.trim());
+    if (e.shiftKey) focusPrev(); else focusNext();
+  }
+});
+
+
+
+  // --- Transcript Modal + Search ---
+  const transcriptModal = document.getElementById('transcriptModal');
+  const transcriptTitle = document.getElementById('transcriptTitle');
+  const transcriptBody  = document.getElementById('transcriptBody');
+  const closeModalBtn   = document.getElementById('closeModalBtn');
+  const copyTranscriptBtn = document.getElementById('copyTranscriptBtn');
+  const dlTxtBtn        = document.getElementById('downloadTranscriptBtn');
+  const searchInput     = document.getElementById('transcriptSearch');
+  const searchCount     = document.getElementById('searchCount');
+  const prevBtn         = document.getElementById('prevMatchBtn');
+  const nextBtn         = document.getElementById('nextMatchBtn');
+
+  // NEW: Unique words refs
+  const showUniqueBtn   = document.getElementById('showUniqueBtn');
+  const downloadUniqueBtn = document.getElementById('downloadUniqueBtn');
+  const copyWordsBtn    = document.getElementById('copyWordsBtn');
+  const uniquePanel     = document.getElementById('uniqueWordsPanel');
+  const uniqueCount     = document.getElementById('uniqueCount');
+  const uniqueWordsList = document.getElementById('uniqueWordsList');
+
+  let currentMarks = [];
+  let currentIndex = -1;
+
+  function openModal() { transcriptModal.classList.remove('hidden'); transcriptModal.setAttribute('aria-hidden','false'); setTimeout(()=>searchInput.focus(), 50); }
+  function closeModal(){ transcriptModal.classList.add('hidden'); transcriptModal.setAttribute('aria-hidden','true'); }
+  closeModalBtn.addEventListener('click', closeModal);
+  transcriptModal.addEventListener('click', e => { if (e.target === transcriptModal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (!transcriptModal.classList.contains('hidden')) {
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Enter') { e.preventDefault(); if (e.shiftKey) focusPrev(); else focusNext(); }
+    }
+  });
+
+  function buildTranscriptFromTrack(track) {
+    const lines = Array.isArray(track.captions) ? track.captions.map(c => (c.text || '').trim()) : [];
+    const out = []; let prev = '';
+    for (const line of lines) { if (line && line !== prev) out.push(line); prev = line; }
+    return out.join('\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+  function renderTranscriptText(t){ transcriptBody.innerHTML = escapeHtml(t||''); }
+
+
+ function highlightSearch(query) {
+  const raw = lastTranscriptText || '';
+  // Reset content and state
+  transcriptBody.innerHTML = escapeHtml(raw);
+  currentMarks = [];
+  currentIndex = -1;
+  searchCount.textContent = '0';
+  prevBtn.disabled = nextBtn.disabled = true;
+
+  if (!query) return;
+
+  // Escape regex once
+  const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Walk text nodes and wrap matches with <mark>
+  const walker = document.createTreeWalker(transcriptBody, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  nodes.forEach(node => {
+    const text = node.nodeValue;
+    // Use a *fresh* regex per node to avoid lastIndex issues
+    const r = new RegExp(q, 'gi');
+
+    let found = false;
+    let lastIdx = 0;
+    const parts = [];
+
+    text.replace(r, (m, offset) => {
+      found = true;
+      parts.push(escapeHtml(text.slice(lastIdx, offset)));
+      parts.push(`<mark class="px-0.5 rounded">${escapeHtml(m)}</mark>`);
+      lastIdx = offset + m.length;
+      return m;
+    });
+
+    if (!found) return; // no change for this node
+
+    parts.push(escapeHtml(text.slice(lastIdx)));
+    const span = document.createElement('span');
+    span.innerHTML = parts.join('');
+    node.parentNode.replaceChild(span, node);
+  });
+
+  // Cache marks, enable nav, and auto-focus first match
+  currentMarks = Array.from(transcriptBody.querySelectorAll('mark'));
+  searchCount.textContent = String(currentMarks.length);
+  const has = currentMarks.length > 0;
+  prevBtn.disabled = nextBtn.disabled = !has;
+  if (has) { currentIndex = 0; focusMark(currentIndex); }
+}
+
+
+
+  function focusMark(i){
+    if (!currentMarks.length) return;
+    currentMarks.forEach(m => m.classList.remove('ring','ring-2','ring-indigo-500'));
+    const el = currentMarks[i]; if (!el) return;
+    el.classList.add('ring','ring-2','ring-indigo-500'); el.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  function focusNext(){ if (!currentMarks.length) return; currentIndex = (currentIndex + 1) % currentMarks.length; focusMark(currentIndex); }
+  function focusPrev(){ if (!currentMarks.length) return; currentIndex = (currentIndex - 1 + currentMarks.length) % currentMarks.length; focusMark(currentIndex); }
+
+  function renderTranscriptForGuid(guid, langLabel) {
+    if (!lastCaptionPayload) return;
+    const tracks = lastCaptionPayload.captionTracks || [];
+    const track  = tracks.find(t => String(t.guid) === String(guid));
+    if (!track) { setStatus('⚠️ Track not found for selected GUID.', 'error'); return; }
+
+    lastTranscriptText = buildTranscriptFromTrack(track);
+    document.getElementById('transcriptTitle').textContent = `Transcript — ${langLabel || 'Unknown'} (${guid})`;
+    renderTranscriptText(lastTranscriptText);
+    // Reset unique-words UI each time a new transcript opens
+    uniqueWordsList.textContent = '';
+    uniqueCount.textContent = '0';
+    toggleHidden(uniquePanel, true);
+    downloadUniqueBtn.disabled = true;
+    copyWordsBtn.disabled = true;
+
+    highlightSearch(searchInput.value || '');
+    openModal();
+  }
+
+  document.getElementById('captionTable').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-guid]');
+    if (!btn) return;
+    renderTranscriptForGuid(btn.getAttribute('data-guid'), btn.getAttribute('data-lang'));
+  });
+
+  // Copy / Download transcript
+  copyTranscriptBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(lastTranscriptText || '');
+      copyTranscriptBtn.textContent = 'Copied!';
+      setTimeout(() => (copyTranscriptBtn.textContent = 'Copy'), 1200);
+    } catch {
+      const ta = document.createElement('textarea'); ta.value = lastTranscriptText || '';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+  });
+  dlTxtBtn.addEventListener('click', () => {
+    const blob = new Blob([lastTranscriptText || ''], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url; a.download = 'transcript.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // --- NEW: Unique Words extraction + UI ---
+  function toTitleCase(w) {
+    if (!w) return w;
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  }
+
+  function extractUniqueWords(text) {
+    // Unicode letters + combining marks; keeps simple apostrophe joins like don't / l’esprit
+    const matches = (text || '').match(/[\p{L}\p{M}]+(?:'[\p{L}\p{M}]+)?/gu) || [];
+    const set = new Map(); // Map preserves insertion order (we’ll sort later anyway)
+    for (const raw of matches) {
+      const lower = raw.toLowerCase();
+      set.set(lower, true);
+    }
+    // Sort A–Z (case-insensitive), then Title-Case them
+    const sorted = Array.from(set.keys()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    return sorted.map(toTitleCase);
+  }
+
+  function renderUniqueWords() {
+    if (!lastTranscriptText) return;
+    const words = extractUniqueWords(lastTranscriptText);
+    uniqueCount.textContent = String(words.length);
+    // Show as comma-separated in the panel (readable), one-per-line for downloads
+    uniqueWordsList.textContent = words.join(', ');
+    toggleHidden(uniquePanel, false);
+    downloadUniqueBtn.disabled = words.length === 0;
+    copyWordsBtn.disabled = words.length === 0;
+    return words;
+  }
+
+  showUniqueBtn.addEventListener('click', () => {
+    renderUniqueWords();
+  });
+  
+  
+    // Re-highlight on every keystroke
+searchInput.addEventListener('input', () => {
+  highlightSearch(searchInput.value.trim());
+});
+
+// Hook up Prev / Next buttons
+prevBtn.addEventListener('click', focusPrev);
+nextBtn.addEventListener('click', focusNext);
+
+  copyWordsBtn.addEventListener('click', async () => {
+    const words = extractUniqueWords(lastTranscriptText);
+    const payload = words.join('\n');
+    try {
+      await navigator.clipboard.writeText(payload);
+      copyWordsBtn.textContent = 'Copied!';
+      setTimeout(() => (copyWordsBtn.textContent = 'Copy words'), 1200);
+    } catch {
+      const ta = document.createElement('textarea'); ta.value = payload;
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+  });
+
+  downloadUniqueBtn.addEventListener('click', () => {
+    const words = extractUniqueWords(lastTranscriptText);
+    const blob = new Blob([words.join('\n')], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url; a.download = 'unique_words.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+</script>
+
+</body>
+</html>
